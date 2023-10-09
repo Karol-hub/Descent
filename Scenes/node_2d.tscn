@@ -1,0 +1,44 @@
+[gd_scene load_steps=5 format=3 uid="uid://cj057p8w1i0i0"]
+
+[ext_resource type="Texture2D" uid="uid://dtbyedtngso42" path="res://Assets/Sprite.png" id="1_8h335"]
+[ext_resource type="Script" path="res://Scripts/CharacterCont.cs" id="1_ruf3v"]
+
+[sub_resource type="CSharpScript" id="CSharpScript_mfrik"]
+script/source = "using Godot;
+using System;
+
+public partial class node_2d : Node2D
+{
+	// Called when the node enters the scene tree for the first time.
+	public override void _Ready()
+	{
+	}
+
+	// Called every frame. 'delta' is the elapsed time since the previous frame.
+	public override void _Process(double delta)
+	{
+	}
+}
+"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dchmw"]
+
+[node name="Node2D" type="Node2D"]
+script = SubResource("CSharpScript_mfrik")
+
+[node name="CharacterBody2D" type="CharacterBody2D" parent="."]
+script = ExtResource("1_ruf3v")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D"]
+shape = SubResource("RectangleShape2D_dchmw")
+
+[node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D/CollisionShape2D"]
+texture_filter = 1
+position = Vector2(-4.76837e-07, -4.76837e-07)
+scale = Vector2(1.25, 1.25)
+texture = ExtResource("1_8h335")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="TileMap" type="TileMap" parent="."]
+format = 2
