@@ -14,9 +14,17 @@ config/name="Decaying Descent"
 run/main_scene="res://Scenes/test scene.tscn"
 config/features=PackedStringArray("4.1", "C#", "Forward Plus")
 
+[aseprite_importers]
+
+aseprite_executable_path="D:/Steam/steamapps/common/Aseprite/Aseprite.exe"
+
 [dotnet]
 
 project/assembly_name="Decaying Descent"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/nklbdev.aseprite_importers/plugin.cfg")
 
 [input]
 

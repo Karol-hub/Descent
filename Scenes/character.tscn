@@ -1,18 +1,20 @@
 [gd_scene load_steps=4 format=3 uid="uid://bw556dxwg8q6r"]
 
 [ext_resource type="Script" path="res://Scripts/character_movement.cs" id="1_8hijs"]
-[ext_resource type="Texture2D" uid="uid://dtbyedtngso42" path="res://Assets/Sprite.png" id="1_ynige"]
+[ext_resource type="PackedScene" path="res://Assets/oversized coat.aseprite" id="2_vx54u"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0kqgo"]
-size = Vector2(16, 16)
+size = Vector2(24, 29)
 
 [node name="Node2D" type="CharacterBody2D"]
 script = ExtResource("1_8hijs")
 
-[node name="CharacterSprite" type="Sprite2D" parent="."]
-texture = ExtResource("1_ynige")
-
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 1.5)
 shape = SubResource("RectangleShape2D_0kqgo")
 
 [node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(2, 2)
+
+[node name="oversized coat" parent="." instance=ExtResource("2_vx54u")]
+position = Vector2(-24, 4)
