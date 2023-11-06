@@ -9,9 +9,8 @@ public partial class character_movement : CharacterBody2D
     //Presets
     private Vector2 velocity;
     private Vector2 direction;
-    private bool facingLeft;
-    private bool inDash;
     private Sprite2D sprite;
+    private bool facingLeft;
     //Character presets
     public float Speed = 300.0f;
     public float JumpVelocity = -400.0f;
