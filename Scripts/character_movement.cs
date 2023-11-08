@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
@@ -19,20 +20,27 @@ public partial class character_movement : CharacterBody2D
         walking,
         airBorn,
         dashing,
-        dashEndLag
+        dashEndLag,
+        noResistance
     }
     private playerState state;
     private float frameDelta;
-    private float dashTime;
+    private float time;
     //Character presets
-    public float Speed = 300.0f;
-    public float JumpVelocity = -400.0f;
-    public float dashVelocity = 800f;
-    public float bounceVel = -400f;
-    public float bounceDir = 1.1f;
-    public int dashLength = 100; // in ms
-    public int endLagLength = 50; //in ms
     public float decelerateRate = 100f;
+    public float noResDecelerateRate = 1f;
+    //moving
+    public float speed = 5000.0f;
+    public float jumpVelocity = -400.0f;
+    //bounce
+    public float bounceVel = 50f;
+    public float bounceDir = 80f; //in degrees
+    public float bounceNoResLength = 0.1f; //in s
+    //dash
+    public float dashVelocity = 800f;
+    public float dashLength = 0.1f; // in s
+    public int endLagLength = 50; //in ms
+    
     public override void _Ready()
     {
         sprite = GetNode<Sprite2D>("sprite");
@@ -41,45 +49,42 @@ public partial class character_movement : CharacterBody2D
     public override void _Process(double delta)
     {
         frameDelta = (float)delta;
-        PlayerInput();
+        direction = Input.GetVector("move_left", "move_right", "move_up", "move_down");
         ManageState();
         ManageSprite();
+        Movement();
+        Velocity = velocity;
+        GD.Print("acc Vel:"+Velocity);
+        GD.Print(state);
+        MoveAndSlide();
     }
-    public override void _PhysicsProcess(double delta)
+    private void Movement()
     {
         #region gravity
         // Add the gravity.
-        if (state == playerState.airBorn)
-            velocity.Y += gravity * (float)delta;
+        if (state == playerState.airBorn || state == playerState.noResistance)
+            velocity.Y += gravity * frameDelta;
+        #endregion
+
+        #region speed_control
+        if (state != playerState.dashing && state != playerState.noResistance)
+        {
+            velocity.X = (float)Mathf.MoveToward(velocity.X, 0f, decelerateRate) * frameDelta;
+        }
+        else if (state == playerState.noResistance)
+        {
+            velocity.X = (float)Mathf.MoveToward(velocity.X, 0f, noResDecelerateRate) * frameDelta;
+        }
         #endregion
 
         #region move_player
-        if (direction != Vector2.Zero && (state != playerState.dashing))
+        if (direction != Vector2.Zero && (state != playerState.dashing) && (state != playerState.noResistance))
         {
-            velocity.X = direction.X * Speed;
+            velocity.X = direction.X * speed * frameDelta;
         }
-        else if (state != playerState.dashing)
+        else if (state == playerState.noResistance)
         {
-            velocity.X = (float)Mathf.MoveToward(velocity.X, 0f, decelerateRate);
-        }
-        #endregion
-
-        Velocity = velocity;
-        //GD.Print("acc Vel:"+Velocity);
-        MoveAndSlide();
-    }
-    private void PlayerInput()
-    {
-        direction = Input.GetVector("move_left", "move_right", "move_up", "move_down");
-        #region Moving
-        //gets direction of player input
-        if (direction.X < 0f)
-        {
-            facingLeft = true;
-        }
-        else if (direction.X > 0f)
-        {
-            facingLeft = false;
+            velocity.X += direction.X * speed * frameDelta;
         }
         #endregion
 
@@ -87,16 +92,15 @@ public partial class character_movement : CharacterBody2D
         // Handle Jump.
         if (Input.IsActionJustPressed("jump") && IsOnFloor() && (state != playerState.dashing))
         {
-            velocity.Y = JumpVelocity;
+            velocity.Y = jumpVelocity;
         }
         #endregion
 
         #region dash
         if (Input.IsActionJustPressed("dash")) //init dash
         {
-            dashTime = 0f;
+            time = 0f;
             state = playerState.dashing;
-            Task.Delay(dashLength).ContinueWith(t => ResetDash());
             // If player isn't moving
             if (direction == Vector2.Zero)
             {
@@ -118,10 +122,9 @@ public partial class character_movement : CharacterBody2D
         {
             if (climbCollider.HasOverlappingBodies() && Input.IsActionPressed("jump")) //check for wallbounce
             {
-                KillEndLag();
+                state = playerState.noResistance;
+                velocity.X *= -1f;
                 velocity += BounceVel(bounceVel,bounceDir);
-                GD.Print("xComponent:" + BounceVel(bounceVel, bounceDir).X);
-                GD.Print("DashVel"+velocity);
             }
         }
         #endregion
@@ -140,6 +143,18 @@ public partial class character_movement : CharacterBody2D
             climbCollider.Scale = new Vector2(-1f, 1f);
         }
         #endregion
+
+        #region which_dir_facing
+        //gets direction of player input
+        if (direction.X < 0f)
+        {
+            facingLeft = true;
+        }
+        else if (direction.X > 0f)
+        {
+            facingLeft = false;
+        }
+        #endregion
     }
     private void ManageState()
     {
@@ -150,51 +165,63 @@ public partial class character_movement : CharacterBody2D
         }
         else if (state == playerState.dashing)
         {
-            dashTime += frameDelta;
-            if (dashTime >= dashLength)
+            time += frameDelta;
+            if (time >= dashLength)
             {
-                ResetDash();
+                EndDash();
             }
+            return;
+        }
+        else if (state == playerState.noResistance)
+        {
+            if (IsOnFloor())
+            {
+                state = playerState.idle;
+            }
+
+            time += frameDelta;
+            if (time >= bounceNoResLength)
+            {
+                state = playerState.idle;
+            }
+            return;
         }
         else if (!IsOnFloor())
         {
             state = playerState.airBorn;
+            return;
         }
         else if (direction == Vector2.Zero && IsOnFloor())
         {
             state = playerState.idle;
+            return;
         }
         else if (direction != Vector2.Zero && IsOnFloor())
         {
             state = playerState.walking;
+            return;
         }
+
     }
-    private void ResetDash()
+    private void EndDash()
     {
         state = playerState.dashEndLag;
         velocity = Vector2.Zero;
-        Task.Delay(endLagLength).ContinueWith(t => KillEndLag());
+        Task.Delay(endLagLength).ContinueWith(t => ToIdle());
     }
-    private void KillEndLag()
+    private void ToIdle()
     {
         state = playerState.idle;
     }
     private Vector2 BounceVel(float mag, float dir)
     {
-        /// <summary>
-        /// Essentially rotates vector by dir
-        /// </summary>
-        /// <param name="mag">magnitude of vector</param>
-        /// <param name="dir">rotation to normal in radians to y axis</param>
-        /// <returns>vector</returns>
         if (facingLeft)
         {
-            return new Vector2(-mag * MathF.Sin(dir), mag * MathF.Cos(dir));
+            return new Vector2(mag * MathF.Sin(dir), -mag * MathF.Cos(dir));
         }
         else
         {
-            return new Vector2(mag * MathF.Sin(dir), mag * MathF.Cos(dir));
+            return new Vector2(-mag * MathF.Sin(dir), -mag * MathF.Cos(dir));
         }
-        
     }
 }
