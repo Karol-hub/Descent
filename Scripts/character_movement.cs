@@ -1,7 +1,6 @@
 using Godot;
 using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
 
 public partial class character_movement : CharacterBody2D
 {
@@ -12,46 +11,34 @@ public partial class character_movement : CharacterBody2D
     private Vector2 direction;
     private Sprite2D sprite;
     private bool facingLeft;
-    private enum playerState
-    {
-        idle,
-        walking,
-        airBorn,
-        dashing,
-        dashEndLag
-    }
-    private playerState state;
     //Character presets
     public float Speed = 300.0f;
     public float JumpVelocity = -400.0f;
     public float dashVelocity = 800f;
-    public int dashLength = 100; // in ms
-    public int endLagLength = 50; //in ms
-    public float decelerateRate = 100f;
+    public float decelerateRate = 20f;
     public override void _Ready()
     {
-        sprite = GetNode<Sprite2D>("sprite");
+        sprite = GetNode<Sprite2D>("CharacterSprite");
     }
     public override void _Process(double delta)
     {
         PlayerInput();
-        ManageState();
         ManageSprite();
     }
     public override void _PhysicsProcess(double delta)
     {
         #region gravity
         // Add the gravity.
-        if (state == playerState.airBorn)
+        if (!IsOnFloor())
             velocity.Y += gravity * (float)delta;
         #endregion
 
         #region move_player
-        if (direction != Vector2.Zero && (state != playerState.dashing))
+        if (direction != Vector2.Zero)
         {
             velocity.X = direction.X * Speed;
         }
-        else if (state != playerState.dashing)
+        else
         {
             velocity.X = (float)Mathf.MoveToward(velocity.X, 0f, decelerateRate);
         }
@@ -77,7 +64,7 @@ public partial class character_movement : CharacterBody2D
 
         #region jumping
         // Handle Jump.
-        if (Input.IsActionJustPressed("jump") && IsOnFloor() && (state != playerState.dashing))
+        if (Input.IsActionJustPressed("jump") && IsOnFloor())
         {
             velocity.Y = JumpVelocity;
         }
@@ -86,8 +73,6 @@ public partial class character_movement : CharacterBody2D
         #region dash
         if (Input.IsActionJustPressed("dash"))
         {
-            state = playerState.dashing;
-            Task.Delay(dashLength).ContinueWith(t => resetDash());
             // If player isn't moving
             if (direction == Vector2.Zero)
             {
@@ -103,9 +88,10 @@ public partial class character_movement : CharacterBody2D
                 }
             }
             else
-            // dash in whatever direction facing
             {
-                velocity = (direction.Normalized() * dashVelocity);
+                GD.Print(direction.Normalized() * dashVelocity);
+                velocity += (direction.Normalized() * dashVelocity);
+                GD.Print(velocity);
             }
         }
         #endregion
@@ -122,35 +108,5 @@ public partial class character_movement : CharacterBody2D
             sprite.Scale = new Vector2(-1f, 1f);
         }
         #endregion
-    }
-    private void resetDash()
-    {
-        state = playerState.dashEndLag;
-        velocity = Vector2.Zero;
-        Task.Delay(endLagLength).ContinueWith(t => killEndLag());
-    }
-    private void killEndLag()
-    {
-        state = playerState.idle;
-    }
-    private void ManageState()
-    {
-        // Handle player state
-        if (state == playerState.dashing || state == playerState.dashEndLag)
-        {
-            return;
-        }
-        else if (!IsOnFloor())
-        {
-            state = playerState.airBorn;
-        }
-        else if (direction == Vector2.Zero && IsOnFloor())
-        {
-            state = playerState.idle;
-        }
-        else if (direction != Vector2.Zero && IsOnFloor())
-        {
-            state = playerState.walking;
-        }
     }
 }
