@@ -1,20 +1,34 @@
-[gd_scene load_steps=4 format=3 uid="uid://d0ss354shi48r"]
+[gd_scene load_steps=6 format=3 uid="uid://d0ss354shi48r"]
 
 [ext_resource type="Script" path="res://Scripts/character_movement.cs" id="1_8hijs"]
+[ext_resource type="Texture2D" uid="uid://wtgngqfgqug1" path="res://Assets/Solid Orange.png" id="2_67dlv"]
 [ext_resource type="Texture2D" uid="uid://bv5v4quyo7hh2" path="res://Assets/cha.png" id="2_aewld"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_d0s3p"]
 size = Vector2(8, 13)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_u1rof"]
+size = Vector2(4, 11)
+
 [node name="CharacterBody2D" type="CharacterBody2D"]
 script = ExtResource("1_8hijs")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, 3.5)
+[node name="CharacterHitBox" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_d0s3p")
 
+[node name="climbBox" type="Area2D" parent="."]
+
+[node name="climbCollisionShape" type="CollisionShape2D" parent="climbBox"]
+position = Vector2(-6, 0)
+shape = SubResource("RectangleShape2D_u1rof")
+
+[node name="Sprite2D" type="Sprite2D" parent="climbBox"]
+position = Vector2(-6, 0)
+scale = Vector2(0.25, 0.6875)
+texture = ExtResource("2_67dlv")
+
 [node name="sprite" type="Sprite2D" parent="."]
-position = Vector2(0, 2)
+position = Vector2(0, -1.5)
 texture = ExtResource("2_aewld")
 
 [node name="Camera2D" type="Camera2D" parent="."]
