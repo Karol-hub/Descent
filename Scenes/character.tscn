@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://d0ss354shi48r"]
+[gd_scene load_steps=7 format=3 uid="uid://c0t8bdh666rf0"]
 
 [ext_resource type="Script" path="res://Scripts/character_movement.cs" id="1_8hijs"]
 [ext_resource type="Texture2D" uid="uid://wtgngqfgqug1" path="res://Assets/Solid Orange.png" id="2_67dlv"]
 [ext_resource type="Texture2D" uid="uid://bv5v4quyo7hh2" path="res://Assets/cha.png" id="2_aewld"]
+[ext_resource type="Script" path="res://Scripts/DisplayVelocity.cs" id="4_nioof"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_d0s3p"]
 size = Vector2(8, 13)
@@ -33,3 +34,17 @@ texture = ExtResource("2_aewld")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(3, 3)
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Velocity" type="Label" parent="Control"]
+layout_mode = 0
+offset_left = -185.0
+offset_top = -101.0
+offset_right = -103.0
+offset_bottom = -78.0
+script = ExtResource("4_nioof")
