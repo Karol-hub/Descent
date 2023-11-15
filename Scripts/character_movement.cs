@@ -15,7 +15,7 @@ public partial class character_movement : CharacterBody2D
     private Area2D climbCollider;
     private bool facingLeft;
     public int dashes;
-    private enum playerState
+    public enum playerState
     {
         idle,
         walking,
@@ -24,25 +24,25 @@ public partial class character_movement : CharacterBody2D
         dashEndLag,
         noResistance
     }
-    private playerState state;
+    public playerState state;
     private float frameDelta;
     private float time;
     //Character presets
-    public float decelerateRate = 100f;
-    public float noResDecelerateRate = 0.1f;
+    private float decelerateRate = 100f;
+    private float noResDecelerateRate = 0.1f;
     //moving
-    public float speed = 5000.0f;
-    public float jumpVelocity = -400.0f;
+    private float speed = 200.0f;
+    private float jumpVelocity = -400.0f;
     //bounce
-    public float bounceVel = 50f;
-    public float bounceDir = 80f; //in degrees
-    public float bounceNoResLength = 0.42f; //in s
-    public float strokGravity = 2f;
+    private float bounceVel = 50f;
+    private float bounceDir = 80f; //in degrees
+    private float bounceNoResLength = 0.42f; //in s
+    private float strokGravity = 2f;
     //dash
-    public float dashVelocity = 800f;
-    public float dashLength = 0.2f; // in s
-    public int endLagLength = 50; //in ms
-    public int maxDashes = 2;
+    private float dashVelocity = 800f;
+    private float dashLength = 0.15f; // in s
+    private int endLagLength = 50; //in ms
+    private int maxDashes = 2;
     
     public override void _Ready()
     {
@@ -87,12 +87,14 @@ public partial class character_movement : CharacterBody2D
         #region move_player
         if (direction != Vector2.Zero && (state != playerState.dashing) && (state != playerState.noResistance))
         {
-            velocity.X = direction.X * speed * frameDelta;
+            velocity.X = direction.X * speed;
         }
+        /*
         else if (state == playerState.noResistance)
         {
             velocity.X += direction.X * speed * frameDelta;
         }
+        */
         #endregion
 
         #region jumping
@@ -104,12 +106,12 @@ public partial class character_movement : CharacterBody2D
         #endregion
 
         #region dash
-        if (Input.IsActionJustPressed("dash") && (dashes > 0))
+        if (Input.IsActionJustPressed("dash") && (dashes > 0)) //init dash
         {
             state = playerState.dashing;
             dashes -= 1;
-            // If player isn't moving
-            if (direction == Vector2.Zero)
+            time = 0f;
+            if (direction == Vector2.Zero) // If player isn't moving
             {
                 if (facingLeft) //dash left
                 {

@@ -11,8 +11,22 @@ size = Vector2(8, 13)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_u1rof"]
 size = Vector2(4, 11)
 
-[node name="CharacterBody2D" type="CharacterBody2D"]
+[node name="CharacterBody" type="CharacterBody2D"]
 script = ExtResource("1_8hijs")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Velocity" type="Label" parent="Control"]
+layout_mode = 0
+offset_left = -185.0
+offset_top = -101.0
+offset_right = -103.0
+offset_bottom = -78.0
+script = ExtResource("4_nioof")
 
 [node name="CharacterHitBox" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_d0s3p")
@@ -34,17 +48,3 @@ texture = ExtResource("2_aewld")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(3, 3)
-
-[node name="Control" type="Control" parent="."]
-layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
-
-[node name="Velocity" type="Label" parent="Control"]
-layout_mode = 0
-offset_left = -185.0
-offset_top = -101.0
-offset_right = -103.0
-offset_bottom = -78.0
-script = ExtResource("4_nioof")
