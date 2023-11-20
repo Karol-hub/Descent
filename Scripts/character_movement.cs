@@ -9,6 +9,7 @@ public partial class character_movement : CharacterBody2D
     //Constants
     public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
     //Presets
+    public KinematicCollision2D collision;
     public Vector2 velocity;
     private Vector2 direction;
     private Sprite2D sprite;
@@ -34,16 +35,16 @@ public partial class character_movement : CharacterBody2D
     private float speed = 200.0f;
     private float jumpVelocity = -400.0f;
     //bounce
-    private float bounceVel = 50f;
+    private float bounceVel = 40f;
     private float bounceDir = 80f; //in degrees
-    private float bounceNoResLength = 0.42f; //in s
-    private float strokGravity = 2f;
+    private float bounceNoResLength = 0.30f; //in s
+    private float strokGravity = 3f; //gravity needs to be stronger cuz it feels cooler
     //dash
     private float dashVelocity = 800f;
     private float dashLength = 0.15f; // in s
     private int endLagLength = 50; //in ms
     private int maxDashes = 2;
-    
+   
     public override void _Ready()
     {
         sprite = GetNode<Sprite2D>("sprite");
@@ -131,20 +132,27 @@ public partial class character_movement : CharacterBody2D
         {
             if (climbCollider.HasOverlappingBodies() && Input.IsActionPressed("jump")) //check for wallbounce
             {
-                state = playerState.noResistance;
-                time = 0f;
-                if (direction == Vector2.Zero)
+                for (int i = 0; i < climbCollider.GetOverlappingBodies().Count; i++)
                 {
-                    return;
-                }
-                else if (direction == Vector2.Up) //special wall bounce
-                {
-                    velocity += BounceVel(bounceVel, bounceDir);
-                }
-                else if (direction != Vector2.Down) //bounce back from the wall when diagnal or horizontal
-                {
-                    dashes = maxDashes; //resets dashes
-                    velocity.X *= -1f;
+                    if (climbCollider.GetOverlappingBodies()[i].GetClass() == "TileMap") //only activate when colliding with walls
+                    {
+                        state = playerState.noResistance; //init bounce
+                        time = 0f;
+                        if (direction == Vector2.Zero)
+                        {
+                            return;
+                        }
+                        else if (direction == Vector2.Up) //special wall bounce
+                        {
+                            velocity += BounceVel(bounceVel, bounceDir);
+                        }
+                        else if (direction != Vector2.Down) //bounce back from the wall when diagnal or horizontal
+                        {
+                            dashes = maxDashes; //resets dashes
+                            velocity.X *= -1f;
+                        }
+                        break;
+                    }
                 }
             }
             if (IsOnFloor() && Input.IsActionPressed("jump"))//check for floorbounce
@@ -186,24 +194,46 @@ public partial class character_movement : CharacterBody2D
     private void ManageState()
     {
         // Handle player state
-        if (state == playerState.dashEndLag)
+        if (state == playerState.dashEndLag) //at end of dash
         {
             return;
         }
-        else if (state == playerState.dashing)
+        else if (state == playerState.dashing) //when in dash
         {
             time += frameDelta;
             if (time >= dashLength)
             {
                 EndDash();
+                return;
+            }
+            if (GetSlideCollisionCount() != 0)
+            {
+                for (int i = 0; i < GetSlideCollisionCount(); i++)
+                {
+                    if (GetSlideCollision(i).GetCollider().GetClass() == "TileMap" && GetSlideCollision(i).GetAngle()!=0)  
+                    {
+                        //end dash when colliding with walls but not floor
+                        EndDash();
+                        return;
+                    }
+                    //also want something for when you collide with enemy and that would go here
+                }
             }
             return;
         }
-        else if (state == playerState.noResistance)
+        else if (state == playerState.noResistance) //after bouncing
         {
-            if (IsOnFloor())
+            if (GetSlideCollisionCount() != 0)
             {
-                state = playerState.idle;
+                for (int i = 0; i < GetSlideCollisionCount(); i++)
+                {
+                    if (GetSlideCollision(i).GetCollider().GetClass() == "TileMap")
+                    {
+                        //end when colliding with scenery
+                        ToIdle();
+                        return;
+                    }
+                }
             }
 
             time += frameDelta;
@@ -213,18 +243,18 @@ public partial class character_movement : CharacterBody2D
             }
             return;
         }
-        else if (!IsOnFloor())
+        else if (!IsOnFloor()) //when on floor
         {
             state = playerState.airBorn;
             return;
         }
-        else if (direction == Vector2.Zero && IsOnFloor())
+        else if (direction == Vector2.Zero && IsOnFloor()) //when idle
         {
             state = playerState.idle;
             dashes = maxDashes;
             return;
         }
-        else if (direction != Vector2.Zero && IsOnFloor())
+        else if (direction != Vector2.Zero && IsOnFloor()) //when walking
         {
             state = playerState.walking;
             dashes = maxDashes;
