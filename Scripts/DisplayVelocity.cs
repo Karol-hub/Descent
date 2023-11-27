@@ -16,6 +16,6 @@ public partial class DisplayVelocity : Label
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
-        parent.Text = script.velocity.ToString() + "\n" + script.dashes + "\n" + script.state;
+        parent.Text = script.velocity.ToString() + "\n" + script.jumps + "\n" + script.state;
 	}
 }

@@ -16,6 +16,7 @@ public partial class character_movement : CharacterBody2D
     private Area2D climbCollider;
     private bool facingLeft;
     public int dashes;
+    public int jumps;
     public enum playerState
     {
         idle,
@@ -34,6 +35,7 @@ public partial class character_movement : CharacterBody2D
     //moving
     private float speed = 200.0f;
     private float jumpVelocity = -400.0f;
+    public int maxJumps = 2;
     //bounce
     private float bounceVel = 40f;
     private float bounceDir = 80f; //in degrees
@@ -100,8 +102,9 @@ public partial class character_movement : CharacterBody2D
 
         #region jumping
         // Handle Jump.
-        if (Input.IsActionJustPressed("jump") && IsOnFloor() && (state != playerState.dashing))
+        if (Input.IsActionJustPressed("jump") && (jumps > 0) && (state != playerState.dashing))
         {
+            jumps -= 1;
             velocity.Y = jumpVelocity;
         }
         #endregion
@@ -251,13 +254,15 @@ public partial class character_movement : CharacterBody2D
         else if (direction == Vector2.Zero && IsOnFloor()) //when idle
         {
             state = playerState.idle;
-            dashes = maxDashes;
+            dashes = maxDashes; //resets amount of dashes
+            jumps = maxJumps; //resets amount of Jumps
             return;
         }
         else if (direction != Vector2.Zero && IsOnFloor()) //when walking
         {
             state = playerState.walking;
-            dashes = maxDashes;
+            dashes = maxDashes; //resets amount of dashes
+            jumps = maxJumps; //resets amount of Jumps
             return;
         }
 
