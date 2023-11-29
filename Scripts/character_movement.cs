@@ -1,37 +1,53 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Linq;
 
 public partial class character_movement : CharacterBody2D
 {
     //Constants
     public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
-    //Presets
+    //Nodes
     public KinematicCollision2D collision;
-    public Vector2 velocity;
-    private Vector2 direction;
     private Sprite2D sprite;
     private Area2D climbCollider;
+    //Movement presets
+    public Vector2 velocity;
+    private Vector2 direction;
     private bool facingLeft;
     public int dashes;
     public int jumps;
+    private float coyoteTimer =10f;
+    private bool lastFrameGrounded;
     public enum playerState
     {
         idle,
         walking,
+        coyote,
         airBorn,
         dashing,
         dashEndLag,
         noResistance
     }
     public playerState state;
+    //buffer preset
+    public class playerInputBuffer
+    {
+        public string InputType;
+        public float whenPressed;
+    }
+    public List<playerInputBuffer> InputRegister;
+    // timer
     private float frameDelta;
     private float time;
     //Character presets
+    private float inputLifespan =1f;
     private float decelerateRate = 100f;
     private float noResDecelerateRate = 0.1f;
+    private float coyoteWindow =0.5f;
     //moving
     private float speed = 200.0f;
     private float jumpVelocity = -400.0f;
@@ -56,10 +72,13 @@ public partial class character_movement : CharacterBody2D
     {
         frameDelta = (float)delta;
         direction = Input.GetVector("move_left", "move_right", "move_up", "move_down");
+        PlayerInput();
         ManageState();
         ManageSprite();
         Movement();
         Velocity = velocity;
+        lastFrameGrounded = IsOnFloor();
+        MannageInputRegister();
         MoveAndSlide();
     }
     private void Movement()
@@ -110,7 +129,7 @@ public partial class character_movement : CharacterBody2D
         #endregion
 
         #region dash
-        if (Input.IsActionJustPressed("dash") && (dashes > 0)) //init dash
+        if ((Input.IsActionJustPressed("dash")||InputRegister.Where(x => x.InputType == "jump").Count()==0) && (dashes > 0)) //init dash
         {
             state = playerState.dashing;
             dashes -= 1;
@@ -209,7 +228,7 @@ public partial class character_movement : CharacterBody2D
                 EndDash();
                 return;
             }
-            if (GetSlideCollisionCount() != 0)
+            if (GetSlideCollisionCount() != 0) //end  dash when colliding
             {
                 for (int i = 0; i < GetSlideCollisionCount(); i++)
                 {
@@ -246,16 +265,22 @@ public partial class character_movement : CharacterBody2D
             }
             return;
         }
-        else if (!IsOnFloor()) //when on floor
+        else if (!IsOnFloor() && (coyoteTimer > coyoteWindow)) //when not on floor
         {
             state = playerState.airBorn;
             return;
+        }
+        else if ((state == playerState.coyote)||(!IsOnFloor() && lastFrameGrounded))
+        {
+            state = playerState.coyote;
+            coyoteTimer += frameDelta;
         }
         else if (direction == Vector2.Zero && IsOnFloor()) //when idle
         {
             state = playerState.idle;
             dashes = maxDashes; //resets amount of dashes
             jumps = maxJumps; //resets amount of Jumps
+            coyoteTimer = 0f; //resets timer for coyote window
             return;
         }
         else if (direction != Vector2.Zero && IsOnFloor()) //when walking
@@ -263,9 +288,29 @@ public partial class character_movement : CharacterBody2D
             state = playerState.walking;
             dashes = maxDashes; //resets amount of dashes
             jumps = maxJumps; //resets amount of Jumps
+            coyoteTimer = 0f; //resets timer for coyote window
             return;
         }
 
+    }
+    private void MannageInputRegister()
+    {
+        if (InputRegister.Count == 0)
+        {
+            return;
+        }
+        for (int i=0;i<InputRegister.Count;i++)
+        {
+            InputRegister[i].whenPressed += frameDelta;
+            if (InputRegister[i].whenPressed > inputLifespan)
+            {
+                InputRegister.RemoveAt(i);
+            }
+        }
+    }
+    private void PlayerInput()
+    {
+        return;
     }
     private void EndDash()
     {
