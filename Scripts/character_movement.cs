@@ -26,6 +26,7 @@ public partial class character_movement : CharacterBody2D
     {
         idle,
         walking,
+        jumping,
         coyote,
         airBorn,
         dashing,
@@ -38,11 +39,17 @@ public partial class character_movement : CharacterBody2D
     {
         public string InputType;
         public float whenPressed;
+        public playerInputBuffer(string PlayerIn)
+        {
+            InputType = PlayerIn;
+            whenPressed = 0f;
+        }
     }
     public List<playerInputBuffer> InputRegister;
     // timer
     private float frameDelta;
     private float time;
+    private float jumpTimer; //how long the player is considered "jumping"
     //Character presets
     private float inputLifespan =1f;
     private float decelerateRate = 100f;
@@ -76,9 +83,10 @@ public partial class character_movement : CharacterBody2D
         ManageState();
         ManageSprite();
         Movement();
-        Velocity = velocity;
         lastFrameGrounded = IsOnFloor();
         MannageInputRegister();
+        GD.Print(velocity);
+        Velocity = velocity;
         MoveAndSlide();
     }
     private void Movement()
@@ -123,13 +131,16 @@ public partial class character_movement : CharacterBody2D
         // Handle Jump.
         if (Input.IsActionJustPressed("jump") && (jumps > 0) && (state != playerState.dashing))
         {
+            state = playerState.jumping;
+            time = 0f;
             jumps -= 1;
             velocity.Y = jumpVelocity;
         }
         #endregion
 
         #region dash
-        if ((Input.IsActionJustPressed("dash")||InputRegister.Where(x => x.InputType == "jump").Count()==0) && (dashes > 0)) //init dash
+        //InputRegister.Where(x => x.InputType == "dash").Count()==0)
+        if ((Input.IsActionJustPressed("dash")) && (dashes > 0)) //init dash
         {
             state = playerState.dashing;
             dashes -= 1;
@@ -259,18 +270,22 @@ public partial class character_movement : CharacterBody2D
             }
 
             time += frameDelta;
-            if (time >= bounceNoResLength)
+            if (time >= bounceNoResLength) //finish no resistance state from bounce
             {
                 state = playerState.idle;
             }
             return;
+        }
+        else if (!IsOnFloor() && state == playerState.jumping && time<jumpTimer)
+        {
+            time += frameDelta;
         }
         else if (!IsOnFloor() && (coyoteTimer > coyoteWindow)) //when not on floor
         {
             state = playerState.airBorn;
             return;
         }
-        else if ((state == playerState.coyote)||(!IsOnFloor() && lastFrameGrounded))
+        else if ((state == playerState.coyote)||((!IsOnFloor() && lastFrameGrounded)) && state != playerState.jumping)
         {
             state = playerState.coyote;
             coyoteTimer += frameDelta;
@@ -291,10 +306,10 @@ public partial class character_movement : CharacterBody2D
             coyoteTimer = 0f; //resets timer for coyote window
             return;
         }
-
     }
     private void MannageInputRegister()
     {
+        GD.Print(InputRegister.Count());
         if (InputRegister.Count == 0)
         {
             return;
@@ -308,9 +323,9 @@ public partial class character_movement : CharacterBody2D
             }
         }
     }
-    private void PlayerInput()
+    private void PlayerInput() //allows to buffer jumps and dashes
     {
-        return;
+        InputRegister.Add(new playerInputBuffer("sup",0f));
     }
     private void EndDash()
     {
