@@ -26,7 +26,6 @@ public partial class character_movement : CharacterBody2D
     {
         idle,
         walking,
-        jumping,
         coyote,
         airBorn,
         dashing,
@@ -45,16 +44,17 @@ public partial class character_movement : CharacterBody2D
             whenPressed = 0f;
         }
     }
-    public List<playerInputBuffer> InputRegister;
+    public List<playerInputBuffer> InputRegister = new List<playerInputBuffer>();
+    public List<playerInputBuffer> MovementInputHistory = new List<playerInputBuffer>();
     // timer
     private float frameDelta;
     private float time;
-    private float jumpTimer; //how long the player is considered "jumping"
     //Character presets
-    private float inputLifespan =1f;
+    private float inputLifespan =0.2f;
+    private float movementInputHistoryLifespan = 0.2f;
     private float decelerateRate = 100f;
     private float noResDecelerateRate = 0.1f;
-    private float coyoteWindow =0.5f;
+    private float coyoteWindow =0.1f;
     //moving
     private float speed = 200.0f;
     private float jumpVelocity = -400.0f;
@@ -85,7 +85,7 @@ public partial class character_movement : CharacterBody2D
         Movement();
         lastFrameGrounded = IsOnFloor();
         MannageInputRegister();
-        GD.Print(velocity);
+        ManageInputHistory();
         Velocity = velocity;
         MoveAndSlide();
     }
@@ -93,7 +93,7 @@ public partial class character_movement : CharacterBody2D
     {
         #region gravity
         // Add the gravity.
-        if (state == playerState.airBorn)
+        if (state == playerState.airBorn || state == playerState.coyote)
         {
             velocity.Y += gravity * frameDelta;
         }
@@ -106,11 +106,11 @@ public partial class character_movement : CharacterBody2D
         #region speed_control
         if (state != playerState.dashing && state != playerState.noResistance)
         {
-            velocity.X = (float)Mathf.MoveToward(velocity.X, 0f, decelerateRate) * frameDelta;
+            velocity.X = (float)Mathf.MoveToward(velocity.X, 0f, decelerateRate) * frameDelta; //the speed doesn't go zooooooooom (but we still like zoom)
         }
-        else if (state == playerState.noResistance)
+        if (IsOnCeiling() && velocity.Y < 0f && state != playerState.dashing)
         {
-            //velocity.X = (float)Mathf.MoveToward(velocity.X, 0f, noResDecelerateRate) * frameDelta;
+            velocity.Y = 0f;
         }
         #endregion
 
@@ -119,29 +119,22 @@ public partial class character_movement : CharacterBody2D
         {
             velocity.X = direction.X * speed;
         }
-        /*
-        else if (state == playerState.noResistance)
-        {
-            velocity.X += direction.X * speed * frameDelta;
-        }
-        */
         #endregion
 
         #region jumping
         // Handle Jump.
-        if (Input.IsActionJustPressed("jump") && (jumps > 0) && (state != playerState.dashing))
+        if ((InputRegister.Where(x => x.InputType == "jump").Count() != 0 && jumps > 0) && MovementInputHistory.Where(x => x.InputType == "jump").Count() == 0 && (state != playerState.dashing))
         {
-            state = playerState.jumping;
-            time = 0f;
+            MovementExecute("jump"); //does stuff with the input registers
             jumps -= 1;
             velocity.Y = jumpVelocity;
         }
         #endregion
 
         #region dash
-        //InputRegister.Where(x => x.InputType == "dash").Count()==0)
-        if ((Input.IsActionJustPressed("dash")) && (dashes > 0)) //init dash
+        if ((InputRegister.Where(x => x.InputType == "dash").Count() != 0) && dashes > 0) //init dash
         {
+            MovementExecute("dash");
             state = playerState.dashing;
             dashes -= 1;
             time = 0f;
@@ -276,19 +269,20 @@ public partial class character_movement : CharacterBody2D
             }
             return;
         }
-        else if (!IsOnFloor() && state == playerState.jumping && time<jumpTimer)
-        {
-            time += frameDelta;
-        }
-        else if (!IsOnFloor() && (coyoteTimer > coyoteWindow)) //when not on floor
-        {
-            state = playerState.airBorn;
-            return;
-        }
-        else if ((state == playerState.coyote)||((!IsOnFloor() && lastFrameGrounded)) && state != playerState.jumping)
+        else if ((state == playerState.coyote && coyoteTimer < coyoteWindow &&!IsOnFloor())|| (lastFrameGrounded && !IsOnFloor() && MovementInputHistory.Where(x => x.InputType == "jump").Count() == 0))//coyote time is here cool ig
         {
             state = playerState.coyote;
             coyoteTimer += frameDelta;
+            return;
+        }
+        else if (!IsOnFloor() || (coyoteTimer > coyoteWindow && state == playerState.coyote)) //when not on floor
+        {
+            if (coyoteTimer > coyoteWindow && state == playerState.coyote)
+            {
+                coyoteTimer = 0f;
+            }
+            state = playerState.airBorn;
+            return;
         }
         else if (direction == Vector2.Zero && IsOnFloor()) //when idle
         {
@@ -307,14 +301,28 @@ public partial class character_movement : CharacterBody2D
             return;
         }
     }
-    private void MannageInputRegister()
+    private void ManageInputHistory()
     {
-        GD.Print(InputRegister.Count());
-        if (InputRegister.Count == 0)
+        if (MovementInputHistory.Count == 0) //go back if empty
         {
             return;
         }
-        for (int i=0;i<InputRegister.Count;i++)
+        for (int i = 0; i < MovementInputHistory.Count; i++) //gets rid of object if it lives too long
+        {
+            MovementInputHistory[i].whenPressed += frameDelta;
+            if (MovementInputHistory[i].whenPressed > movementInputHistoryLifespan)
+            {
+                MovementInputHistory.RemoveAt(i);
+            }
+        }
+    }
+    private void MannageInputRegister()
+    { 
+        if (InputRegister.Count == 0) //go back if empty
+        {
+            return;
+        }
+        for (int i=0;i<InputRegister.Count;i++) //gets rid of object if it lives too long
         {
             InputRegister[i].whenPressed += frameDelta;
             if (InputRegister[i].whenPressed > inputLifespan)
@@ -325,7 +333,14 @@ public partial class character_movement : CharacterBody2D
     }
     private void PlayerInput() //allows to buffer jumps and dashes
     {
-        InputRegister.Add(new playerInputBuffer("sup",0f));
+        if (Input.IsActionJustPressed("jump"))
+        {
+            InputRegister.Add(new playerInputBuffer("jump"));
+        }
+        else if (Input.IsActionJustPressed("dash"))
+        {
+            InputRegister.Add(new playerInputBuffer("dash"));
+        }
     }
     private void EndDash()
     {
@@ -346,6 +361,18 @@ public partial class character_movement : CharacterBody2D
         else
         {
             return new Vector2(mag * MathF.Sin(dir), -mag * MathF.Cos(dir));
+        }
+    }
+    private void MovementExecute(string In)
+    {
+        MovementInputHistory.Add(new playerInputBuffer(In));
+        for (int i = 0; i < InputRegister.Count; i++)
+        {
+            if (MovementInputHistory[i].InputType == In)
+            {
+                InputRegister.RemoveAt(i);
+                return;
+            }
         }
     }
 }
