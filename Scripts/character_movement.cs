@@ -102,7 +102,6 @@ public partial class character_movement : CharacterBody2D
             velocity.Y += gravity * strokGravity * frameDelta;
         }
         #endregion
-
         #region speed_control
         if (state != playerState.dashing && state != playerState.noResistance)
         {
@@ -113,14 +112,12 @@ public partial class character_movement : CharacterBody2D
             velocity.Y = 0f;
         }
         #endregion
-
         #region move_player
         if (direction != Vector2.Zero && (state != playerState.dashing) && (state != playerState.noResistance))
         {
             velocity.X = direction.X * speed;
         }
         #endregion
-
         #region jumping
         // Handle Jump.
         if ((InputRegister.Where(x => x.InputType == "jump").Count() != 0 && jumps > 0) && MovementInputHistory.Where(x => x.InputType == "jump").Count() == 0 && (state != playerState.dashing))
@@ -130,7 +127,6 @@ public partial class character_movement : CharacterBody2D
             velocity.Y = jumpVelocity;
         }
         #endregion
-
         #region dash
         if ((InputRegister.Where(x => x.InputType == "dash").Count() != 0) && dashes > 0) //init dash
         {
@@ -156,12 +152,13 @@ public partial class character_movement : CharacterBody2D
         }
         if (state == playerState.dashing) //when in dash
         {
-            if (climbCollider.HasOverlappingBodies() && Input.IsActionPressed("jump")) //check for wallbounce
+            if (climbCollider.HasOverlappingBodies() && InputRegister.Where(x => x.InputType == "jump").Count() != 0) //check for wallbounce
             {
                 for (int i = 0; i < climbCollider.GetOverlappingBodies().Count; i++)
                 {
                     if (climbCollider.GetOverlappingBodies()[i].GetClass() == "TileMap") //only activate when colliding with walls
                     {
+                        MovementExecute("jump");
                         state = playerState.noResistance; //init bounce
                         time = 0f;
                         if (direction == Vector2.Zero)
@@ -181,8 +178,9 @@ public partial class character_movement : CharacterBody2D
                     }
                 }
             }
-            if (IsOnFloor() && Input.IsActionPressed("jump"))//check for floorbounce
+            if (IsOnFloor() && InputRegister.Where(x => x.InputType == "jump").Count() != 0)//check for floorbounce
             {
+                MovementExecute("jump");
                 time = 0f;
                 state = playerState.noResistance;
                 velocity.Y = jumpVelocity;
@@ -192,6 +190,17 @@ public partial class character_movement : CharacterBody2D
     }
     private void ManageSprite()
     {
+        #region which_dir_facing
+        //gets direction of player input
+        if (direction.X < 0f)
+        {
+            facingLeft = true;
+        }
+        else if (direction.X > 0f)
+        {
+            facingLeft = false;
+        }
+        #endregion
         #region sprite dir
         if (facingLeft)
         {
@@ -204,26 +213,17 @@ public partial class character_movement : CharacterBody2D
             climbCollider.Scale = new Vector2(-1f, 1f);
         }
         #endregion
-
-        #region which_dir_facing
-        //gets direction of player input
-        if (direction.X < 0f)
-        {
-            facingLeft = true;
-        }
-        else if (direction.X > 0f)
-        {
-            facingLeft = false;
-        }
-        #endregion
     }
     private void ManageState()
     {
         // Handle player state
+        #region dash end lag
         if (state == playerState.dashEndLag) //at end of dash
         {
             return;
         }
+        #endregion
+        #region dash
         else if (state == playerState.dashing) //when in dash
         {
             time += frameDelta;
@@ -247,6 +247,8 @@ public partial class character_movement : CharacterBody2D
             }
             return;
         }
+        #endregion
+        #region no resistance
         else if (state == playerState.noResistance) //after bouncing
         {
             if (GetSlideCollisionCount() != 0)
@@ -269,12 +271,16 @@ public partial class character_movement : CharacterBody2D
             }
             return;
         }
+        #endregion
+        #region coyote time
         else if ((state == playerState.coyote && coyoteTimer < coyoteWindow &&!IsOnFloor())|| (lastFrameGrounded && !IsOnFloor() && MovementInputHistory.Where(x => x.InputType == "jump").Count() == 0))//coyote time is here cool ig
         {
             state = playerState.coyote;
             coyoteTimer += frameDelta;
             return;
         }
+        #endregion
+        #region air born
         else if (!IsOnFloor() || (coyoteTimer > coyoteWindow && state == playerState.coyote)) //when not on floor
         {
             if (coyoteTimer > coyoteWindow && state == playerState.coyote)
@@ -284,6 +290,8 @@ public partial class character_movement : CharacterBody2D
             state = playerState.airBorn;
             return;
         }
+        #endregion
+        #region idle
         else if (direction == Vector2.Zero && IsOnFloor()) //when idle
         {
             state = playerState.idle;
@@ -292,6 +300,8 @@ public partial class character_movement : CharacterBody2D
             coyoteTimer = 0f; //resets timer for coyote window
             return;
         }
+        #endregion
+        #region walking
         else if (direction != Vector2.Zero && IsOnFloor()) //when walking
         {
             state = playerState.walking;
@@ -300,6 +310,7 @@ public partial class character_movement : CharacterBody2D
             coyoteTimer = 0f; //resets timer for coyote window
             return;
         }
+        #endregion
     }
     private void ManageInputHistory()
     {
@@ -331,8 +342,9 @@ public partial class character_movement : CharacterBody2D
             }
         }
     }
-    private void PlayerInput() //allows to buffer jumps and dashes
+    private void PlayerInput() 
     {
+        //allows to buffer jumps and dashes
         if (Input.IsActionJustPressed("jump"))
         {
             InputRegister.Add(new playerInputBuffer("jump"));
@@ -344,16 +356,19 @@ public partial class character_movement : CharacterBody2D
     }
     private void EndDash()
     {
+        //Does the stuff that needs to be dont when ending a dash
         state = playerState.dashEndLag;
         velocity = Vector2.Zero;
         Task.Delay(endLagLength).ContinueWith(t => ToIdle());
     }
     private void ToIdle()
     {
+        // I mean how hard is it to figure it out cmon man
         state = playerState.idle;
     }
     private Vector2 BounceVel(float mag, float dir)
     {
+        // calculates angle for bouncing
         if (facingLeft)
         {
             return new Vector2(-mag * MathF.Sin(dir), -mag * MathF.Cos(dir));
@@ -365,6 +380,7 @@ public partial class character_movement : CharacterBody2D
     }
     private void MovementExecute(string In)
     {
+        // removes the input from input buffer and adds it to history
         MovementInputHistory.Add(new playerInputBuffer(In));
         for (int i = 0; i < InputRegister.Count; i++)
         {

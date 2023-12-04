@@ -7,6 +7,7 @@ public partial class free_cam : Node2D
     private float speedy;
     private Vector2 direction;
     private float multiplier = 5f;
+    private Camera2D cam;
 
     public override void _Ready()
     {
