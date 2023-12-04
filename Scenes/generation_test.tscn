@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://d30rftlvfrckn"]
+
+[ext_resource type="Script" path="res://Scripts/free_cam.cs" id="1_u8t8j"]
+[ext_resource type="Texture2D" uid="uid://dtbyedtngso42" path="res://Assets/Sprite.png" id="2_6if0r"]
+
+[node name="Node2D" type="Node2D"]
+
+[node name="Temp" type="Sprite2D" parent="."]
+texture = ExtResource("2_6if0r")
+
+[node name="Node2D" type="Node2D" parent="."]
+script = ExtResource("1_u8t8j")
+
+[node name="Camera2D" type="Camera2D" parent="Node2D"]
