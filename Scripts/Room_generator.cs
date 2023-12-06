@@ -22,6 +22,18 @@ public partial class Room_generator : Node2D
 	//Deleting rooms
 	private float deletingRoomsFactor = 0.5f; //Needs to be between 0-1
 	private bool removedRooms;
+	//Make edges
+	class Point
+	{
+		public Point() 
+		{ 
+
+		}
+	}
+	class Edge
+	{
+
+	}
     public override void _Ready()
 	{
 		var rng = new RandomNumberGenerator();
@@ -42,10 +54,10 @@ public partial class Room_generator : Node2D
 	{
         var rng = new RandomNumberGenerator();
         rng.Randomize();
+        #region spreading rooms
         //this only runs once at the start of the game so the inefficiency is loading time
         while (!spread) //if the rooms have overlapping areas
 		{
-            //loopCount += 1;
 			//step = 2 + (4000/(((0.1f*MathF.Pow(loopCount,2f))+200)));
             await Task.Delay(TimeSpan.FromMilliseconds(1));
             count = 0; //resets count to check overlapping areas of child
@@ -75,13 +87,17 @@ public partial class Room_generator : Node2D
 				//GD.Print(loopCount);
             }
         }
-        
-		for (int i = 0; i < (amountOfRooms * deletingRoomsFactor); i++)
+        #endregion
+        #region delete rooms
+        for (int i = 0; i < (amountOfRooms * deletingRoomsFactor); i++)
 		{
 			RemoveChild(GetChild<Area2D>(rng.RandiRange(0, (int)(amountOfRooms * deletingRoomsFactor) - i)));
 		}
+        #endregion
+        #region Make edges
+        #endregion
     }
-	private float Map(float from, float min, float max)
+    private float Map(float from, float min, float max)
 	{
 		return min+ (from * (max-min));
 	}
