@@ -1,5 +1,7 @@
 using Godot;
 using System;
+using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 public partial class Room_generator : Node2D
@@ -23,16 +25,36 @@ public partial class Room_generator : Node2D
 	private float deletingRoomsFactor = 0.5f; //Needs to be between 0-1
 	private bool removedRooms;
 	//Make edges
-	class Point
+	List<triangle> triangulation = new List<triangle>();
+	List<triangle> badTriangles = new List<triangle>();
+	//
+	class triangle
 	{
-		public Point() 
-		{ 
+		edge[] edges = new edge[3]; //3 edges make a triangle
+		Vector2 circumcentre;
+		public triangle(edge edge1,edge edge2, edge edge3) 
+		{
+			edges[0] = edge1; edges[1] = edge2; edges[2] = edge3; //set value of all the edges
 
 		}
 	}
-	class Edge
+	class edge
 	{
-
+		point[] points = new point[2]; //2 points make a edge
+		edge(point point1,point point2)
+		{
+			points[0] = point1; points[1] = point2; //set value of the two points
+		}
+	}
+	class point
+	{
+		Area2D area;
+		Vector2 position;
+		point(Area2D Area)
+		{
+			area = Area;
+			position = Area.Position;
+		}
 	}
     public override void _Ready()
 	{
@@ -94,7 +116,8 @@ public partial class Room_generator : Node2D
 			RemoveChild(GetChild<Area2D>(rng.RandiRange(0, (int)(amountOfRooms * deletingRoomsFactor) - i)));
 		}
         #endregion
-        #region Make edges
+        #region delunay triangulation
+
         #endregion
     }
     private float Map(float from, float min, float max)
