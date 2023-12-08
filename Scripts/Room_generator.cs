@@ -30,26 +30,59 @@ public partial class Room_generator : Node2D
 	//
 	class triangle
 	{
-		edge[] edges = new edge[3]; //3 edges make a triangle
-		Vector2 circumcentre;
+		public edge[] edges = new edge[3]; //3 edges make a triangle
+		public Vector2 circumcentre;
+		public float radius;
 		public triangle(edge edge1,edge edge2, edge edge3) 
 		{
 			edges[0] = edge1; edges[1] = edge2; edges[2] = edge3; //set value of all the edges
-
+			findCircumcentre();
+			findRadius();
+		}
+		public bool isWithin(point NewNode)
+		{
+			// check weather the new node lies within the circumcentre
+			return false;
+		}
+		private void findCircumcentre()
+		{
+			//find circumcentre of the circumcircle
+			//finds x coordinate of circumcentre
+			circumcentre.X = ((edges[1].midpoint().X * edges[1].perpendicular()) - (edges[2].midpoint().X * edges[2].perpendicular()) + (edges[2].midpoint().Y - edges[1].midpoint().Y)) / (edges[1].perpendicular() - edges[2].perpendicular());
+			//finds y coordinate of circumcentre
+			circumcentre.Y = (edges[2].perpendicular() * (circumcentre.X - edges[2].midpoint().X)) + edges[2].midpoint().Y;
+		}
+		private void findRadius()
+		{
+			//find radius of circumcircle that the edges lie on
+			//pythag to find distance between points and centre
+			radius = Mathf.Sqrt(MathF.Pow((circumcentre.X - edges[0].points[0].position.X),2f) + MathF.Pow((circumcentre.Y - edges[0].points[0].position.Y),2f));
 		}
 	}
 	class edge
 	{
-		point[] points = new point[2]; //2 points make a edge
+		public point[] points = new point[2]; //2 points make a edge
 		edge(point point1,point point2)
 		{
 			points[0] = point1; points[1] = point2; //set value of the two points
 		}
+		public Vector2 midpoint()
+		{
+			Vector2 mid;
+			mid.X = 0.5f * (points[1].position.X + points[2].position.X);
+            mid.Y = 0.5f * (points[1].position.Y + points[2].position.Y);
+			return mid;
+        }
+		public float perpendicular()
+		{
+			float gradient = (points[1].position.X - points[2].position.X)/ (points[1].position.Y - points[2].position.Y);
+			return (-1f / gradient);
+        }
 	}
 	class point
 	{
-		Area2D area;
-		Vector2 position;
+		public Area2D area;
+		public Vector2 position;
 		point(Area2D Area)
 		{
 			area = Area;
