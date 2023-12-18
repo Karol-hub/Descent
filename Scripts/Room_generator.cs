@@ -9,7 +9,16 @@ using System.Threading.Tasks;
 public partial class Room_generator : Node2D
 {
 	// presets for generating rooms
-	private int amountOfRooms = 10;
+    private enum generationState
+    {
+        spreadRooms,
+        deleteRooms,
+        triangulation,
+        draw,
+        done
+    }
+    private generationState currentState = generationState.spreadRooms;
+    private int amountOfRooms = 10;
 	private float maxXScale = 20f;
     private float minXScale = 8f;
     private float maxYScale = 20f;
@@ -27,6 +36,7 @@ public partial class Room_generator : Node2D
 	//Deleting rooms
 	private float deletingRoomsFactor = 0.5f; //Needs to be between 0-1
 	private bool removedRooms;
+    private List<Area2D> roomsToDelete = new List<Area2D>();
 	//Make edges
 	public List<Triangle> triangulation =  new List<Triangle>();
 	public List<Triangle> badTriangles = new List<Triangle>();
@@ -179,10 +189,8 @@ public partial class Room_generator : Node2D
     public override void _Ready()
 	{
         rng.Seed = 69420;
-        //rng.Randomize();
-        GD.Print("ll");
+        //rng.Randomize();  
         room = GD.Load<PackedScene>("res://Scenes/room_generator.tscn");
-		GD.Print("aaaaaaaaaaaaadasd");
 		spreadFactor = amountOfRooms / 5f;
 
         #region make rooms
@@ -194,9 +202,12 @@ public partial class Room_generator : Node2D
             instance.GetNode<Area2D>(".").Position = new Vector2(rng.Randf() * spreadFactor, rng.Randf()) * spreadFactor; //generates initial random position
         }
         #endregion
-        #region spreading rooms
-        while (!spread) //if the rooms have overlapping areas
+    }
+    public override void _Process(double delta)
+    {
+        if (currentState == generationState.spreadRooms)
         {
+            #region spreading rooms
             //step = 2 + (4000/(((0.1f*MathF.Pow(loopCount,2f))+200)));
             //Thread.Sleep(1);
             count = 0; //resets count to check overlapping areas of child
@@ -221,131 +232,147 @@ public partial class Room_generator : Node2D
             }
             if (count == amountOfRooms)
             {
-                spread = true;
+                currentState = generationState.deleteRooms;
+                return;
                 //GD.Print("fin");
                 //GD.Print(loopCount);
             }
-        }
-        /* moves the rooms one a time and often breaks because room gets stuck in a loop
-		for (int i = 0; i < GetChildCount();i++)
-		{
-            Thread.Sleep(1);
-            while (GetChild<Area2D>(i).HasOverlappingAreas())
-			{
+            /* moves the rooms one a time and often breaks because room gets stuck in a loop
+            for (int i = 0; i < GetChildCount();i++)
+            {
                 Thread.Sleep(1);
-                direction = Vector2.Zero; //resets direction to 0
-                for (int j = 0; j < GetChild<Area2D>(i).GetOverlappingAreas().Count; j++) //check every overlapping area
+                while (GetChild<Area2D>(i).HasOverlappingAreas())
                 {
-                    displacement = GetChild<Area2D>(i).Position - GetChild<Area2D>(i).GetOverlappingAreas()[j].Position;
-                    direction += (10 / displacement.Length()) * displacement.Normalized(); //finds difference between original area and overlapping area
-                }
-                direction = direction.Normalized();
-                //loopCount += 1;
-                GetChild<Area2D>(i).Position += direction * step;
-            }
-		}
-		*/
-        #endregion
-        #region delete rooms
-        /*
-        for (int i = 0; i < (int)(amountOfRooms * deletingRoomsFactor); i++)
-        {
-            count = rng.RandiRange(0, GetChildCount() - i);
-            GD.Print("------------newChild---------");
-            GD.Print(count);
-            GD.Print(IsInstanceValid(GetChild<Area2D>(count)));
-            GetChild<Area2D>(count).QueueFree();
-            GD.Print("AAAA");
-            //Thread.Sleep(1);
-            GD.Print("Be gond child");
-        }
-        GD.Print("boops");
-        */
-        #endregion
-        #region delunay triangulation
-        //creates supertriangle that should be large enough to hold all points
-        GD.Print("make super tri");
-        Point superTriPoint1 = new Point(new Area2D());
-        superTriPoint1.AlterPos(new Vector2(-999999f, -999999f));
-        Point superTriPoint2 = new Point(new Area2D());
-        superTriPoint2.AlterPos(new Vector2(-999999f, 999999f));
-        Point superTriPoint3 = new Point(new Area2D());
-        superTriPoint3.AlterPos(new Vector2(999999f, 0f));
-        Triangle superTri = new Triangle(triangulation, superTriPoint1, superTriPoint2, superTriPoint3);
-        triangulation.Add(superTri);
-        GD.Print("start big looop");
-        for (int i = 0; i < GetChildCount(); i++)
-        {
-            GD.Print("gerererge " + i);
-            //resets badtriangles
-            badTriangles = new List<Triangle>();
-            GD.Print("badtriangles list fin");
-            // makes new point
-            Point newPoint = new Point(GetChild<Area2D>(i));
-            GD.Print("newPoint made");
-            // checks which triangles are invalid because new point
-            GD.Print(triangulation.Count());
-            for (int y = 0; y < triangulation.Count(); i++)
-            {
-                if (triangulation[y].isWithin(newPoint))
-                {
-                    badTriangles.Add(triangulation[y]);
-                }
-            }
-            GD.Print("made it past badtrianges added");
-            // for remeshing when new point is added
-            polygon = new List<Edge>();
-            polygonEdgeList = new List<Edge>();
-            for (int y = 0; y < badTriangles.Count(); y++)
-            {
-                triangulation.Remove(badTriangles[y]);
-                for (int x = 0; x < 3; x++)
-                {
-                    polygonEdgeList.Add(badTriangles[y].edges[x]);
-                }
-            }
-            for (int y = 0; y < polygonEdgeList.Count(); y++) //checks if there is one or more item in list
-            {
-                int count = 0;
-                for (int x = 0; x < polygonEdgeList.Count(); x++) //checks if values are equal
-                {
-                    if (polygonEdgeList[y] == polygonEdgeList[x] && x != y)
+                    Thread.Sleep(1);
+                    direction = Vector2.Zero; //resets direction to 0
+                    for (int j = 0; j < GetChild<Area2D>(i).GetOverlappingAreas().Count; j++) //check every overlapping area
                     {
-                        count += 1;
+                        displacement = GetChild<Area2D>(i).Position - GetChild<Area2D>(i).GetOverlappingAreas()[j].Position;
+                        direction += (10 / displacement.Length()) * displacement.Normalized(); //finds difference between original area and overlapping area
+                    }
+                    direction = direction.Normalized();
+                    //loopCount += 1;
+                    GetChild<Area2D>(i).Position += direction * step;
+                }
+            }
+            */
+            #endregion
+        }
+        if (currentState == generationState.deleteRooms)
+        {
+            GD.Print("aasdasdassglisdfosi;rgliydrhoslo");
+            GD.Print((int)(amountOfRooms * deletingRoomsFactor));
+            #region delete rooms
+            for (int i = 0; i < (int)(amountOfRooms * deletingRoomsFactor); i++)
+            {
+                count = rng.RandiRange(0, GetChildCount());
+                RemoveChild(GetChild<Area2D>(count));
+            }
+            /*
+            for (int i = 0; i <roomsToDelete.Count; i++)
+            {
+                RemoveChild(roomsToDelete[i]);
+            }
+            */
+            currentState = generationState.triangulation;
+            #endregion
+        }
+        if (currentState == generationState.triangulation)
+        {
+            #region delunay triangulation
+            //creates supertriangle that should be large enough to hold all points
+            GD.Print("make super tri");
+            Point superTriPoint1 = new Point(new Area2D());
+            superTriPoint1.AlterPos(new Vector2(-999999f, -999999f));
+            Point superTriPoint2 = new Point(new Area2D());
+            superTriPoint2.AlterPos(new Vector2(-999999f, 999999f));
+            Point superTriPoint3 = new Point(new Area2D());
+            superTriPoint3.AlterPos(new Vector2(999999f, 0f));
+            Triangle superTri = new Triangle(triangulation, superTriPoint1, superTriPoint2, superTriPoint3);
+            triangulation.Add(superTri);
+            GD.Print("start big looop");
+            for (int i = 0; i < GetChildCount(); i++)
+            {
+                GD.Print("gerererge " + i);
+                //resets badtriangles
+                badTriangles = new List<Triangle>();
+                GD.Print("badtriangles list fin");
+                // makes new point
+                Point newPoint = new Point(GetChild<Area2D>(i));
+                GD.Print("newPoint made");
+                // checks which triangles are invalid because new point
+                GD.Print(triangulation.Count());
+                for (int y = 0; y < triangulation.Count(); i++)
+                {
+                    if (triangulation[y].isWithin(newPoint))
+                    {
+                        badTriangles.Add(triangulation[y]);
                     }
                 }
-                if (count == 1) //if there is one of an item type add it to polygon
+                GD.Print("made it past badtrianges added");
+                // for remeshing when new point is added
+                polygon = new List<Edge>();
+                polygonEdgeList = new List<Edge>();
+                for (int y = 0; y < badTriangles.Count(); y++)
                 {
-                    polygon.Add(polygonEdgeList[y]);
+                    triangulation.Remove(badTriangles[y]);
+                    for (int x = 0; x < 3; x++)
+                    {
+                        polygonEdgeList.Add(badTriangles[y].edges[x]);
+                    }
+                }
+                for (int y = 0; y < polygonEdgeList.Count(); y++) //checks if there is one or more item in list
+                {
+                    int count = 0;
+                    for (int x = 0; x < polygonEdgeList.Count(); x++) //checks if values are equal
+                    {
+                        if (polygonEdgeList[y] == polygonEdgeList[x] && x != y)
+                        {
+                            count += 1;
+                        }
+                    }
+                    if (count == 1) //if there is one of an item type add it to polygon
+                    {
+                        polygon.Add(polygonEdgeList[y]);
+                    }
+                }
+                // re triangulate mesh from polygon
+                for (int y = 0; y < polygon.Count; y++)
+                {
+                    triangulation.Add(new Triangle(triangulation, newPoint, polygon[y].points[0], polygon[y].points[1])); // add new triangle to triangulation
                 }
             }
-            // re triangulate mesh from polygon
-            for (int y = 0; y < polygon.Count; y++)
+            // clean up points from superTri
+            badTriangles = new List<Triangle>();
+            for (int i = 0; i < triangulation.Count; i++)
             {
-                triangulation.Add(new Triangle(triangulation, newPoint, polygon[y].points[0], polygon[y].points[1])); // add new triangle to triangulation
-            }
-        }
-        // clean up points from superTri
-        badTriangles = new List<Triangle>();
-        for (int i = 0; i < triangulation.Count; i++)
-        {
-            for (int y = 0; i < 3; y++)
-            {
-                if (triangulation[i].points[y] == superTriPoint1 || triangulation[i].points[y] == superTriPoint2 || triangulation[i].points[y] == superTriPoint3)
+                for (int y = 0; i < 3; y++)
                 {
-                    badTriangles.Add(triangulation[i]);
+                    if (triangulation[i].points[y] == superTriPoint1 || triangulation[i].points[y] == superTriPoint2 || triangulation[i].points[y] == superTriPoint3)
+                    {
+                        badTriangles.Add(triangulation[i]);
+                    }
                 }
             }
+            for (int i = 0; i < badTriangles.Count; i++)
+            {
+                triangulation.Remove(badTriangles[i]);
+            }
+            currentState = generationState.draw;
+            #endregion
         }
-        for (int i = 0; i < badTriangles.Count; i++)
+        if (currentState == generationState.draw)
         {
-            triangulation.Remove(badTriangles[i]);
+            #region draw result
+            GD.Print("ligma");
+            QueueRedraw();
+            currentState = generationState.done;
+            #endregion
         }
-        #endregion
-        #region draw result
-        GD.Print("ligma");
-        QueueRedraw();
-        #endregion
+        if (currentState == generationState.done)
+        {
+            return;
+        }
     }
     private float Map(float from, float min, float max)
 	{
