@@ -6,6 +6,7 @@ public partial class free_cam : Node2D
     private Node2D self;
     private float speedy;
     private Vector2 direction;
+    private Vector2 zoom;
     private float multiplier = 5f;
     private Camera2D cam;
     private float zoomStep = 0.1f;
@@ -14,6 +15,7 @@ public partial class free_cam : Node2D
     {
         self = GetNode<Node2D>(".");
         cam = GetNode<Camera2D>("./Camera2D");
+        zoom = cam.Zoom;
     }
     public override void _Process(double delta)
     {
@@ -27,12 +29,13 @@ public partial class free_cam : Node2D
         }
         if (Input.IsActionJustPressed("zoom_out"))
         {
-            cam.Zoom -= new Vector2(zoomStep,zoomStep);
+            zoom += new Vector2(zoomStep,zoomStep);
         }
         if (Input.IsActionJustPressed("zoom_in"))
         {
-            cam.Zoom += new Vector2(zoomStep, zoomStep);
+            zoom -= new Vector2(zoomStep, zoomStep);
         }
+        cam.Zoom = new Vector2(1 / zoom.X, 1 / zoom.Y);
         direction = Input.GetVector("move_left", "move_right", "move_up", "move_down");
         self.Position += direction * speedy * (1/cam.Zoom.X) *300f;
     }

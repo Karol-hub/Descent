@@ -3,6 +3,7 @@ using Godot.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,12 +19,12 @@ public partial class Room_generator : Node2D
         done
     }
     private generationState currentState = generationState.spreadRooms;
-    private int amountOfRooms = 10;
+    private int amountOfRooms = 500;
 	private float maxXScale = 20f;
     private float minXScale = 8f;
     private float maxYScale = 20f;
     private float minYScale = 8f;
-	private float spreadFactor = 100f;
+	private float spreadFactor;
 	public PackedScene room;
 	//spreading rooms apart
 	private bool spread = false;
@@ -34,14 +35,18 @@ public partial class Room_generator : Node2D
 	//temp statistics stuff Remove at end
 	private int loopCount = 0;
 	//Deleting rooms
-	private float deletingRoomsFactor = 0.5f; //Needs to be between 0-1
+	private float deletingRoomsFactor = 0.8f; //Needs to be between 0-1 (if its 0.8 it will delete 80% of rooms)
 	private bool removedRooms;
     private List<Area2D> roomsToDelete = new List<Area2D>();
-	//Make edges
+    //Deluaney triangulation
+    public int loops = -1;
 	public List<Triangle> triangulation =  new List<Triangle>();
 	public List<Triangle> badTriangles = new List<Triangle>();
 	public List<Edge> polygon = new List<Edge>();
 	public List<Edge> polygonEdgeList = new List<Edge>();
+    Point superTriPoint1;
+    Point superTriPoint2;
+    Point superTriPoint3;
     RandomNumberGenerator rng = new RandomNumberGenerator();
 	public class Triangle
 	{
@@ -128,11 +133,13 @@ public partial class Room_generator : Node2D
 		}
 		private void findCircumcentre()
 		{
-			//find circumcentre of the circumcircle
-			//finds x coordinate of circumcentre
-			circumcentre.X = ((edges[1].midpoint().X * edges[1].perpendicular()) - (edges[2].midpoint().X * edges[2].perpendicular()) + (edges[2].midpoint().Y - edges[1].midpoint().Y)) / (edges[1].perpendicular() - edges[2].perpendicular());
-			//finds y coordinate of circumcentre
-			circumcentre.Y = (edges[2].perpendicular() * (circumcentre.X - edges[2].midpoint().X)) + edges[2].midpoint().Y;
+            //find circumcentre of the circumcircle
+            // equation from https://www.omnicalculator.com/math/circumcenter-of-a-triangle
+            float t = Mathf.Pow(points[0].position.X, 2f) + Mathf.Pow(points[0].position.Y, 2f) - Mathf.Pow(points[1].position.X, 2f) - Mathf.Pow(points[1].position.Y, 2f);
+            float u = Mathf.Pow(points[0].position.X, 2f) + Mathf.Pow(points[0].position.Y, 2f) - Mathf.Pow(points[2].position.X, 2f) - Mathf.Pow(points[2].position.Y, 2f);
+            float J = ((points[0].position.X - points[1].position.X) * (points[0].position.Y - points[2].position.Y)) - ((points[0].position.X - points[2].position.X) * (points[0].position.Y - points[1].position.Y));
+            circumcentre.X = ((t * (points[0].position.Y - points[2].position.Y)) - (u * (points[0].position.Y - points[1].position.Y))) / (2 * J);
+            circumcentre.Y = ((u * (points[0].position.X - points[1].position.X)) - (t * (points[0].position.X - points[2].position.X))) / (2 * J);
 		}
 		private void findRadius()
 		{
@@ -191,7 +198,7 @@ public partial class Room_generator : Node2D
         rng.Seed = 69420;
         //rng.Randomize();  
         room = GD.Load<PackedScene>("res://Scenes/room_generator.tscn");
-		spreadFactor = amountOfRooms / 5f;
+		spreadFactor = amountOfRooms * 5f;
 
         #region make rooms
         for (int i = 0; i < amountOfRooms; i++) //makes a certain amount of "rooms"
@@ -199,7 +206,7 @@ public partial class Room_generator : Node2D
             var instance = room.Instantiate();
             AddChild(instance);
             instance.GetNode<CollisionShape2D>("Collision").Scale = new Vector2(Map(rng.Randf(), minXScale, maxXScale), Map(rng.Randf(), minYScale, maxYScale)); //generates random scale
-            instance.GetNode<Area2D>(".").Position = new Vector2(rng.Randf() * spreadFactor, rng.Randf()) * spreadFactor; //generates initial random position
+            instance.GetNode<Area2D>(".").Position = new Vector2(rng.Randf() * spreadFactor, rng.Randf() * spreadFactor); //generates initial random position
         }
         #endregion
     }
@@ -208,8 +215,6 @@ public partial class Room_generator : Node2D
         if (currentState == generationState.spreadRooms)
         {
             #region spreading rooms
-            //step = 2 + (4000/(((0.1f*MathF.Pow(loopCount,2f))+200)));
-            //Thread.Sleep(1);
             count = 0; //resets count to check overlapping areas of child
             for (int i = 0; i < amountOfRooms; i++)
             {
@@ -222,7 +227,6 @@ public partial class Room_generator : Node2D
                         direction += (10 / displacement.Length()) * displacement.Normalized(); //finds difference between original area and overlapping area
                     }
                     direction = direction.Normalized();
-                    //loopCount += 1;
                     GetChild<Area2D>(i).Position += direction * step * rng.Randf();
                 }
                 else
@@ -237,7 +241,7 @@ public partial class Room_generator : Node2D
                 //GD.Print("fin");
                 //GD.Print(loopCount);
             }
-            /* moves the rooms one a time and often breaks because room gets stuck in a loop
+            /* other design that moves the rooms one a time and often breaks because room gets stuck in a loop
             for (int i = 0; i < GetChildCount();i++)
             {
                 Thread.Sleep(1);
@@ -260,8 +264,6 @@ public partial class Room_generator : Node2D
         }
         if (currentState == generationState.deleteRooms)
         {
-            GD.Print("aasdasdassglisdfosi;rgliydrhoslo");
-            GD.Print((int)(amountOfRooms * deletingRoomsFactor));
             #region delete rooms
             for (int i = 0; i < (int)(amountOfRooms * deletingRoomsFactor); i++)
             {
@@ -280,42 +282,39 @@ public partial class Room_generator : Node2D
         if (currentState == generationState.triangulation)
         {
             #region delunay triangulation
-            //creates supertriangle that should be large enough to hold all points
-            GD.Print("make super tri");
-            Point superTriPoint1 = new Point(new Area2D());
-            superTriPoint1.AlterPos(new Vector2(-999999f, -999999f));
-            Point superTriPoint2 = new Point(new Area2D());
-            superTriPoint2.AlterPos(new Vector2(-999999f, 999999f));
-            Point superTriPoint3 = new Point(new Area2D());
-            superTriPoint3.AlterPos(new Vector2(999999f, 0f));
-            Triangle superTri = new Triangle(triangulation, superTriPoint1, superTriPoint2, superTriPoint3);
-            triangulation.Add(superTri);
-            GD.Print("start big looop");
-            for (int i = 0; i < GetChildCount(); i++)
+            if (loops == -1)
             {
-                GD.Print("gerererge " + i);
+                //creates supertriangle that should be large enough to hold all points
+                superTriPoint1 = new Point(new Area2D());
+                superTriPoint1.AlterPos(new Vector2(-999999f, -999999f));
+                superTriPoint2 = new Point(new Area2D());
+                superTriPoint2.AlterPos(new Vector2(-999999f, 999999f));
+                superTriPoint3 = new Point(new Area2D());
+                superTriPoint3.AlterPos(new Vector2(999999f, 0f));
+                Triangle superTri = new Triangle(triangulation, superTriPoint1, superTriPoint2, superTriPoint3);
+                triangulation.Add(superTri);
+                loops = 0;
+            }
+            if (loops < GetChildCount() && loops != -1)
+            {
                 //resets badtriangles
                 badTriangles = new List<Triangle>();
-                GD.Print("badtriangles list fin");
                 // makes new point
-                Point newPoint = new Point(GetChild<Area2D>(i));
-                GD.Print("newPoint made");
+                Point newPoint = new Point(GetChild<Area2D>(loops));
                 // checks which triangles are invalid because new point
-                GD.Print(triangulation.Count());
-                for (int y = 0; y < triangulation.Count(); i++)
+                for (int y = 0; y < triangulation.Count(); y++)
                 {
                     if (triangulation[y].isWithin(newPoint))
                     {
                         badTriangles.Add(triangulation[y]);
                     }
                 }
-                GD.Print("made it past badtrianges added");
                 // for remeshing when new point is added
                 polygon = new List<Edge>();
                 polygonEdgeList = new List<Edge>();
                 for (int y = 0; y < badTriangles.Count(); y++)
                 {
-                    triangulation.Remove(badTriangles[y]);
+                    triangulation.Remove(badTriangles[y]); //remove bad triangles from triangulation
                     for (int x = 0; x < 3; x++)
                     {
                         polygonEdgeList.Add(badTriangles[y].edges[x]);
@@ -323,17 +322,18 @@ public partial class Room_generator : Node2D
                 }
                 for (int y = 0; y < polygonEdgeList.Count(); y++) //checks if there is one or more item in list
                 {
-                    int count = 0;
+                    count = 0;
                     for (int x = 0; x < polygonEdgeList.Count(); x++) //checks if values are equal
                     {
-                        if (polygonEdgeList[y] == polygonEdgeList[x] && x != y)
+                        if (AreTwoEdgesTheSame(polygonEdgeList[x], polygonEdgeList[y]) && x != y)
                         {
                             count += 1;
                         }
                     }
-                    if (count == 1) //if there is one of an item type add it to polygon
+                    if (count == 0) //if there is one of an item type add it to polygon
                     {
                         polygon.Add(polygonEdgeList[y]);
+                        //GD.Print("polygon edge added");
                     }
                 }
                 // re triangulate mesh from polygon
@@ -342,29 +342,33 @@ public partial class Room_generator : Node2D
                     triangulation.Add(new Triangle(triangulation, newPoint, polygon[y].points[0], polygon[y].points[1])); // add new triangle to triangulation
                 }
             }
-            // clean up points from superTri
-            badTriangles = new List<Triangle>();
-            for (int i = 0; i < triangulation.Count; i++)
+            loops += 1;
+            if (loops == GetChildCount())
+            //if (loops == 3)
             {
-                for (int y = 0; i < 3; y++)
+                // clean up points from superTri
+                badTriangles = new List<Triangle>();
+                for (int i = 0; i < triangulation.Count; i++)
                 {
-                    if (triangulation[i].points[y] == superTriPoint1 || triangulation[i].points[y] == superTriPoint2 || triangulation[i].points[y] == superTriPoint3)
+                    for (int y = 0; y < 3; y++)
                     {
-                        badTriangles.Add(triangulation[i]);
+                        if (triangulation[i].points[y] == superTriPoint1 || triangulation[i].points[y] == superTriPoint2 || triangulation[i].points[y] == superTriPoint3)
+                        {
+                            badTriangles.Add(triangulation[i]);
+                        }
                     }
                 }
+                for (int i = 0; i < badTriangles.Count; i++)
+                {
+                    triangulation.Remove(badTriangles[i]);
+                }
+                currentState = generationState.draw;
             }
-            for (int i = 0; i < badTriangles.Count; i++)
-            {
-                triangulation.Remove(badTriangles[i]);
-            }
-            currentState = generationState.draw;
             #endregion
         }
         if (currentState == generationState.draw)
         {
             #region draw result
-            GD.Print("ligma");
             QueueRedraw();
             currentState = generationState.done;
             #endregion
@@ -374,25 +378,33 @@ public partial class Room_generator : Node2D
             return;
         }
     }
+    private bool AreTwoEdgesTheSame(Edge edge1, Edge edge2)
+    {
+        // checks weather two edges have points which are the same
+        return (edge1.points[0].position == edge2.points[0].position || edge1.points[0].position == edge2.points[1].position) 
+            && (edge1.points[1].position == edge2.points[0].position || edge1.points[1].position == edge2.points[1].position);
+    }
     private float Map(float from, float min, float max)
 	{
 		return min+ (from * (max-min));
 	}
     public override void _Draw()
     {
-		if (triangulation.Count == 0)
+		if (triangulation.Count == 0) //gets called once at the start of the script so we wanna make sure not to do that one
 		{
 			return;
 		}
 		Vector2 position1;
 		Vector2 position2;
-		for (int i = 0;i < triangulation.Count;i++)
+		for (int i = 0;i < triangulation.Count;i++) // for each triangle in triangulation
 		{
-			for (int y = 0; y <3; y++) 
+			for (int y = 0; y <3; y++)  //for each edge in the triangle
 			{
+                //get position of both points on the edge
 				position1 = triangulation[i].edges[y].points[0].position;
 				position2 = triangulation[i].edges[y].points[1].position;
-				DrawLine(position1,position2, new Color(1f, 0.752941f, 0.796078f, 1f), 10f);
+                //draw line between two points
+                DrawLine(position1,position2, new Color(1f, 0.752941f, 0.796078f, 1f), 10f);
             }
 		}
     }
