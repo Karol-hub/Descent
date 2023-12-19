@@ -152,7 +152,7 @@ public partial class character_movement : CharacterBody2D
         }
         if (state == playerState.dashing) //when in dash
         {
-            if (climbCollider.HasOverlappingBodies() && InputRegister.Where(x => x.InputType == "jump").Count() != 0) //check for wallbounce
+            if (climbCollider.HasOverlappingBodies() && Input.IsActionPressed("jump")) //check for wallbounce
             {
                 for (int i = 0; i < climbCollider.GetOverlappingBodies().Count; i++)
                 {
@@ -236,8 +236,9 @@ public partial class character_movement : CharacterBody2D
             {
                 for (int i = 0; i < GetSlideCollisionCount(); i++)
                 {
-                    if (GetSlideCollision(i).GetCollider().GetClass() == "TileMap" && GetSlideCollision(i).GetAngle()!=0)  
+                    if (GetSlideCollision(i).GetCollider().GetClass() == "TileMap" && !Input.IsActionPressed("jump"))  
                     {
+                        GD.Print("thingie happened");
                         //end dash when colliding with walls but not floor
                         EndDash();
                         return;

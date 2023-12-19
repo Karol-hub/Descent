@@ -20,10 +20,10 @@ public partial class Room_generator : Node2D
         done
     }
     private generationState currentState = generationState.spreadRooms;
-    private int amountOfRooms = 20;
+    private int amountOfRooms = 10;
 	private float maxXScale = 20f;
-    private float minXScale = 8f;
-    private float maxYScale = 20f;
+    private float minXScale = 10f;
+    private float maxYScale = 15f;
     private float minYScale = 8f;
 	private float spreadFactor;
 	public PackedScene room;
@@ -32,7 +32,7 @@ public partial class Room_generator : Node2D
 	private int count = 0;
 	private Vector2 direction = Vector2.Zero;
 	private Vector2 displacement;
-	private float step = 5f;
+	private float step = 20f;
 	//temp statistics stuff Remove at end
 	private int loopCount = 0;
 	//Deleting rooms
@@ -197,7 +197,7 @@ public partial class Room_generator : Node2D
 	{
         rng.Seed = 69420;
         //rng.Randomize();  
-        room = GD.Load<PackedScene>("res://Scenes/room_generator.tscn");
+        room = GD.Load<PackedScene>("res://Scenes/RoomVars/room_var_1.tscn");
 		spreadFactor = amountOfRooms * 5f;
 
         #region make rooms
@@ -205,7 +205,7 @@ public partial class Room_generator : Node2D
         {
             var instance = room.Instantiate();
             AddChild(instance);
-            instance.GetNode<CollisionShape2D>("Collision").Scale = new Vector2(Map(rng.Randf(), minXScale, maxXScale), Map(rng.Randf(), minYScale, maxYScale)); //generates random scale
+            //instance.GetNode<CollisionShape2D>("Collision").Scale = new Vector2(Map(rng.Randf(), minXScale, maxXScale), Map(rng.Randf(), minYScale, maxYScale)); //generates random scale
             instance.GetNode<Area2D>(".").Position = new Vector2(rng.Randf() * spreadFactor, rng.Randf() * spreadFactor); //generates initial random position
         }
         #endregion

@@ -1,0 +1,65 @@
+[gd_scene load_steps=10 format=3 uid="uid://df4aqqksymokg"]
+
+[ext_resource type="Texture2D" uid="uid://wtgngqfgqug1" path="res://Assets/Solid Orange.png" id="1_nqm2w"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8pd1t"]
+size = Vector2(416, 240)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4wvh5"]
+size = Vector2(416, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_eqd2v"]
+size = Vector2(16, 240)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0mjae"]
+size = Vector2(416, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tfjmp"]
+size = Vector2(16, 240)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_478dq"]
+size = Vector2(160, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_p6qnf"]
+size = Vector2(112, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_y7bpq"]
+size = Vector2(176, 16)
+
+[node name="Area2D" type="Area2D"]
+
+[node name="entireArea" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_8pd1t")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -112)
+shape = SubResource("RectangleShape2D_4wvh5")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
+position = Vector2(200, 0)
+shape = SubResource("RectangleShape2D_eqd2v")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="."]
+position = Vector2(0, 112)
+shape = SubResource("RectangleShape2D_0mjae")
+
+[node name="CollisionShape2D4" type="CollisionShape2D" parent="."]
+position = Vector2(-200, 0)
+shape = SubResource("RectangleShape2D_tfjmp")
+
+[node name="CollisionShape2D5" type="CollisionShape2D" parent="."]
+position = Vector2(-128, -48)
+shape = SubResource("RectangleShape2D_478dq")
+
+[node name="CollisionShape2D6" type="CollisionShape2D" parent="."]
+position = Vector2(104, -16)
+shape = SubResource("RectangleShape2D_p6qnf")
+
+[node name="CollisionShape2D7" type="CollisionShape2D" parent="."]
+position = Vector2(-56, 48)
+shape = SubResource("RectangleShape2D_y7bpq")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(4.76837e-06, -2.98023e-08)
+scale = Vector2(26, 15)
+texture = ExtResource("1_nqm2w")
