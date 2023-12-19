@@ -15,11 +15,12 @@ public partial class Room_generator : Node2D
         spreadRooms,
         deleteRooms,
         triangulation,
+        makeCoridoors,
         draw,
         done
     }
     private generationState currentState = generationState.spreadRooms;
-    private int amountOfRooms = 500;
+    private int amountOfRooms = 20;
 	private float maxXScale = 20f;
     private float minXScale = 8f;
     private float maxYScale = 20f;
@@ -35,9 +36,8 @@ public partial class Room_generator : Node2D
 	//temp statistics stuff Remove at end
 	private int loopCount = 0;
 	//Deleting rooms
-	private float deletingRoomsFactor = 0.8f; //Needs to be between 0-1 (if its 0.8 it will delete 80% of rooms)
+	private float deletingRoomsFactor = 0.5f; //Needs to be between 0-1 (if its 0.8 it will delete 80% of rooms)
 	private bool removedRooms;
-    private List<Area2D> roomsToDelete = new List<Area2D>();
     //Deluaney triangulation
     public int loops = -1;
 	public List<Triangle> triangulation =  new List<Triangle>();
@@ -362,9 +362,38 @@ public partial class Room_generator : Node2D
                 {
                     triangulation.Remove(badTriangles[i]);
                 }
+                //Dumps all edges into polygon for use
+                polygon = new List<Edge>();
+                
+                for (int triangle = 0; triangle < triangulation.Count();triangle++)
+                {
+                    for (int edges = 0; edges < 3;edges++)
+                    {
+                        count = 0;
+                        for (int poly = 0;poly < polygon.Count;poly++)
+                        {
+                            if (AreTwoEdgesTheSame(triangulation[triangle].edges[edges], polygon[poly])) //check if item is already in list
+                            {
+                                count += 1;
+                            }
+                        }
+                        if (count == 0) //if item isnt already in list add it to list
+                        {
+                            polygon.Add(triangulation[triangle].edges[edges]);
+                        }
+                    }
+                }
                 currentState = generationState.draw;
             }
             #endregion
+        }
+        if (currentState == generationState.makeCoridoors)
+        {
+            //also want to make all the rooms here so need to connect it to room object and make a function to do that  there 
+            for (int poly = 0; poly < polygon.Count;poly++)
+            {
+                //make coridoor with towo points from polygon
+            }
         }
         if (currentState == generationState.draw)
         {
@@ -396,16 +425,13 @@ public partial class Room_generator : Node2D
 		}
 		Vector2 position1;
 		Vector2 position2;
-		for (int i = 0;i < triangulation.Count;i++) // for each triangle in triangulation
+		for (int poly = 0;poly < polygon.Count;poly++) // for each triangle in triangulation
 		{
-			for (int y = 0; y <3; y++)  //for each edge in the triangle
-			{
-                //get position of both points on the edge
-				position1 = triangulation[i].edges[y].points[0].position;
-				position2 = triangulation[i].edges[y].points[1].position;
-                //draw line between two points
-                DrawLine(position1,position2, new Color(1f, 0.752941f, 0.796078f, 1f), 10f);
-            }
+            //get position of both points on the edge
+			position1 = polygon[poly].points[0].position;
+			position2 = polygon[poly].points[1].position;
+            //draw line between two points
+            DrawLine(position1,position2, new Color(1f, 0.752941f, 0.796078f, 1f), 10f);
 		}
     }
 }	
