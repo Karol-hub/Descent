@@ -1,0 +1,74 @@
+[gd_scene load_steps=11 format=3 uid="uid://ceqr8348qs3tq"]
+
+[ext_resource type="Texture2D" uid="uid://wtgngqfgqug1" path="res://Assets/Solid Orange.png" id="1_skybe"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_43bbf"]
+size = Vector2(288, 256)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_p5hfs"]
+size = Vector2(288, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_yre2p"]
+size = Vector2(16, 256)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cv8bl"]
+size = Vector2(48, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_xif3t"]
+size = Vector2(16, 160)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_iynt0"]
+size = Vector2(112, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_muaas"]
+size = Vector2(16, 256)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fa1y2"]
+size = Vector2(288, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_trwlk"]
+size = Vector2(112, 16)
+
+[node name="Area2D" type="Area2D"]
+
+[node name="entireArea" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_43bbf")
+debug_color = Color(0.921569, 0.133333, 0.596078, 0.419608)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -120)
+shape = SubResource("RectangleShape2D_p5hfs")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
+position = Vector2(136, 0)
+shape = SubResource("RectangleShape2D_yre2p")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="."]
+position = Vector2(120, -56)
+shape = SubResource("RectangleShape2D_cv8bl")
+
+[node name="CollisionShape2D4" type="CollisionShape2D" parent="."]
+position = Vector2(-72, 0)
+shape = SubResource("RectangleShape2D_xif3t")
+
+[node name="CollisionShape2D5" type="CollisionShape2D" parent="."]
+position = Vector2(-24, -8)
+shape = SubResource("RectangleShape2D_iynt0")
+
+[node name="CollisionShape2D6" type="CollisionShape2D" parent="."]
+position = Vector2(-136, 0)
+shape = SubResource("RectangleShape2D_muaas")
+
+[node name="CollisionShape2D7" type="CollisionShape2D" parent="."]
+position = Vector2(0, 120)
+shape = SubResource("RectangleShape2D_fa1y2")
+
+[node name="CollisionShape2D8" type="CollisionShape2D" parent="."]
+position = Vector2(88, 56)
+shape = SubResource("RectangleShape2D_trwlk")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(-1.06692e-05, 2.38419e-06)
+scale = Vector2(18, 16)
+texture = ExtResource("1_skybe")

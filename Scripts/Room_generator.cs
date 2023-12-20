@@ -20,19 +20,20 @@ public partial class Room_generator : Node2D
         done
     }
     private generationState currentState = generationState.spreadRooms;
-    private int amountOfRooms = 10;
+    private int amountOfRooms = 50;
 	private float maxXScale = 20f;
     private float minXScale = 10f;
     private float maxYScale = 15f;
     private float minYScale = 8f;
 	private float spreadFactor;
-	public PackedScene room;
+	public PackedScene room1;
+    public PackedScene room2;
 	//spreading rooms apart
 	private bool spread = false;
 	private int count = 0;
 	private Vector2 direction = Vector2.Zero;
 	private Vector2 displacement;
-	private float step = 20f;
+	private float step = 4f;
 	//temp statistics stuff Remove at end
 	private int loopCount = 0;
 	//Deleting rooms
@@ -197,16 +198,30 @@ public partial class Room_generator : Node2D
 	{
         rng.Seed = 69420;
         //rng.Randomize();  
-        room = GD.Load<PackedScene>("res://Scenes/RoomVars/room_var_1.tscn");
-		spreadFactor = amountOfRooms * 5f;
-
+        room1 = GD.Load<PackedScene>("res://Scenes/RoomVars/room_var_1.tscn");
+        room2 = GD.Load<PackedScene>("res://Scenes/RoomVars/room_var_2.tscn");
+        spreadFactor = amountOfRooms * 5f;
+        int randNum;
         #region make rooms
         for (int i = 0; i < amountOfRooms; i++) //makes a certain amount of "rooms"
         {
-            var instance = room.Instantiate();
+            Node instance;
+            randNum = rng.RandiRange(0, 1);
+            if (randNum == 0)
+            {
+                instance = room1.Instantiate();
+            }
+            else if (randNum == 1)
+            {
+                instance = room2.Instantiate();
+            }
+            else
+            {
+                instance = room1.Instantiate();
+            }
             AddChild(instance);
             //instance.GetNode<CollisionShape2D>("Collision").Scale = new Vector2(Map(rng.Randf(), minXScale, maxXScale), Map(rng.Randf(), minYScale, maxYScale)); //generates random scale
-            instance.GetNode<Area2D>(".").Position = new Vector2(rng.Randf() * spreadFactor, rng.Randf() * spreadFactor); //generates initial random position
+            instance.GetNode<Area2D>(".").Position = new Vector2((float)Math.Round(rng.Randf() * spreadFactor), (float)Math.Round(rng.Randf() * spreadFactor)); //generates initial random position
         }
         #endregion
     }
@@ -226,8 +241,10 @@ public partial class Room_generator : Node2D
                         displacement = GetChild<Area2D>(i).Position - GetChild<Area2D>(i).GetOverlappingAreas()[j].Position;
                         direction += (10 / displacement.Length()) * displacement.Normalized(); //finds difference between original area and overlapping area
                     }
-                    direction = direction.Normalized();
-                    GetChild<Area2D>(i).Position += direction * step * rng.Randf();
+                    direction = direction.Normalized() * step;
+                    direction.X = (float)Math.Round(direction.X) * step;
+                    direction.Y = (float)Math.Round(direction.Y) * step;
+                    GetChild<Area2D>(i).Position += direction;
                 }
                 else
                 {
