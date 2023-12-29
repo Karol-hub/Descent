@@ -2,7 +2,9 @@ using Godot;
 using Godot.Collections;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,12 +17,15 @@ public partial class Room_generator : Node2D
         spreadRooms,
         deleteRooms,
         triangulation,
+        makeGraph,
+        pathfinding,
+        removeEdges,
         makeCoridoors,
         draw,
         done
     }
     private generationState currentState = generationState.spreadRooms;
-    private int amountOfRooms = 50;
+    private int amountOfRooms = 200;
 	private float maxXScale = 20f;
     private float minXScale = 10f;
     private float maxYScale = 15f;
@@ -37,7 +42,7 @@ public partial class Room_generator : Node2D
 	//temp statistics stuff Remove at end
 	private int loopCount = 0;
 	//Deleting rooms
-	private float deletingRoomsFactor = 0.5f; //Needs to be between 0-1 (if its 0.8 it will delete 80% of rooms)
+	private float deletingRoomsFactor = 0f; //Needs to be between 0-1 (if its 0.8 it will delete 80% of rooms)
 	private bool removedRooms;
     //Deluaney triangulation
     public int loops = -1;
@@ -49,7 +54,10 @@ public partial class Room_generator : Node2D
     Point superTriPoint2;
     Point superTriPoint3;
     RandomNumberGenerator rng = new RandomNumberGenerator();
-	public class Triangle
+    //Remove Edges
+    public List<Point> roomList = new List<Point>();
+    public float edgeDeleteFactor = 0.5f;
+    public class Triangle
 	{
 		public Edge[] edges = new Edge[3]; //3 edges make a triangle
 		public Point[] points = new Point[3];
@@ -182,8 +190,10 @@ public partial class Room_generator : Node2D
 	}
 	public class Point
 	{
+        //point in a graph also represents a room in the code
 		public Area2D area;
 		public Vector2 position;
+        public List<Point> connectedPoints = new List<Point>();
 		public Point(Area2D Area)
 		{
 			area = Area;
@@ -193,7 +203,57 @@ public partial class Room_generator : Node2D
 		{
 			position = newPos;
 		}
+        public void connectPoint(Point newPoint)
+        {
+            if (newPoint == null)
+            {
+                GD.Print("invalid point");
+            }
+            this.connectedPoints.Add(newPoint);
+        }
 	}
+    public class pathFindingEnry
+    {
+        public float heuristic;
+        //didnt have this earlier... pretty dumb
+        public float weight;
+        public List<Point> path;
+        public List<Point> roomList;
+        public Point endPoint;
+        public pathFindingEnry(List<Point> currentPath, Point endPoint)
+        {
+            this.endPoint = endPoint;
+            this.path = currentPath;
+            Point startPoint = currentPath.Last();
+            heuristic = Mathf.Sqrt(Mathf.Pow(startPoint.position.X - endPoint.position.X,2f) + Mathf.Pow(startPoint.position.Y - endPoint.position.Y,2f)); //pythag to find distance between 2 points
+        }
+        public List<pathFindingEnry> GoDeeper()
+        {
+            // goes one step deeper into the pathfinding
+            List<pathFindingEnry> pathFindingEnries = new List<pathFindingEnry>();
+            List<Point> newPath = new List<Point>();
+            for (int i = 0; i < path.Last().connectedPoints.Count();i++)
+            {
+                newPath = path;
+                bool contains = false;
+                for (int j = 0; j < path.Count;j++)
+                {
+                    //dont want it to backtrack ever
+                    if (path[j] == path.Last().connectedPoints[i])
+                    {
+                        contains = true;
+                        break;
+                    }
+                }
+                if (!contains)
+                {
+                    newPath.Add(path.Last().connectedPoints[i]);
+                }
+                pathFindingEnries.Add(new pathFindingEnry(newPath, endPoint));
+            }
+            return pathFindingEnries;
+        }
+    }
     public override void _Ready()
 	{
         rng.Seed = 69420;
@@ -279,7 +339,7 @@ public partial class Room_generator : Node2D
             */
             #endregion
         }
-        if (currentState == generationState.deleteRooms)
+        else if (currentState == generationState.deleteRooms)
         {
             #region delete rooms
             for (int i = 0; i < (int)(amountOfRooms * deletingRoomsFactor); i++)
@@ -296,7 +356,7 @@ public partial class Room_generator : Node2D
             currentState = generationState.triangulation;
             #endregion
         }
-        if (currentState == generationState.triangulation)
+        else if (currentState == generationState.triangulation)
         {
             #region delunay triangulation
             if (loops == -1)
@@ -401,10 +461,130 @@ public partial class Room_generator : Node2D
                     }
                 }
                 currentState = generationState.draw;
+                loopCount = 0;
+                //GD.Print(polygon.Count());
             }
             #endregion
         }
-        if (currentState == generationState.makeCoridoors)
+        else if (currentState == generationState.makeGraph)
+        {
+            if (loopCount < polygon.Count())
+            {
+                //GD.Print("It is on loop " + loopCount);
+                //connect both points to eachother for each polygon
+                bool newPoint1 = true;
+                bool newPoint2 = true;
+                //GD.Print("point1 is: " + polygon[loopCount].points[0].position);
+                //GD.Print("point2 is: " + polygon[loopCount].points[1].position);
+                for (int j = 0; j < roomList.Count(); j++)
+                {
+                    //GD.Print("roomList: " + roomList[j].position);
+                    if (roomList[j].position == polygon[loopCount].points[0].position)
+                    {
+                        //point already exists so we want to connect other point to it
+                        //roomList[j].connectPoint(polygon[loopCount].points[1]);
+                        roomList[j].connectedPoints.Add(polygon[loopCount].points[1]);
+                        newPoint1 = false;
+                    }
+                    if (roomList[j].position == polygon[loopCount].points[1].position)
+                    {
+                        //want to do the same for other point
+                        //roomList[j].connectPoint(polygon[loopCount].points[0]);
+                        roomList[j].connectedPoints.Add(polygon[loopCount].points[0]);
+                        newPoint2 = false;
+                    }
+                    if (!newPoint1 && !newPoint2)
+                    {
+                        //GD.Print("both are false so break");
+                        break;
+                    }
+                }
+                if (newPoint1)
+                {
+                    //if point doesnt exist make it and connect other point to it
+                    roomList.Add(polygon[loopCount].points[0]);
+                    polygon[loopCount].points[0].connectPoint(polygon[loopCount].points[1]);
+                }
+                if (newPoint2)
+                {
+                    //same thing for other point
+                    roomList.Add(polygon[loopCount].points[1]);
+                    polygon[loopCount].points[1].connectPoint(polygon[loopCount].points[0]);
+                }
+                loopCount += 1;
+            }
+            else
+            {
+                loopCount = 1;
+                currentState = generationState.pathfinding;
+                GD.Print(roomList.Count);
+            }
+        }
+        else if (currentState == generationState.pathfinding)
+        {
+            GD.Print("Loop starts:"+loopCount);
+            if (loopCount < roomList.Count())
+            {
+                // select one point as starting point (might as well be the first item in the graph its random anyways)
+                // also select one item as end point (might as well be last item in graph as thats also random)
+                // do a* pathfinding algorithm on every point from start room
+                GD.Print("room "+loopCount+" cooking");
+                List<Point> shortPath = ShortestPath(roomList[0], roomList[loopCount]);
+                GD.Print("solution is this large: "+shortPath.Count);
+                GD.Print("room " + loopCount + " has cooked");
+                // change list of points to a list of edges
+                // add it to a list of edges where all the edges are connected
+                loopCount+=1;
+            }
+            else 
+            {
+                GD.Print("its jover");
+                loopCount = 0;
+                currentState = generationState.removeEdges;
+            }
+        }
+        else if (currentState == generationState.removeEdges)
+        {
+            // add all the edges from all the pathfinding algorithms to one big list
+            // sprinke in a random amount from the delunay triangulation edge list
+            GD.Print("shit works");
+            /*
+            polygon.Clear();
+            for (int i = 1; i < roomList.Count(); i++)
+            {
+                List<Edge> newEdges = new List<Edge>();
+                //finds shortest path between two points
+                List<Point> shortPath = ShortestPath(roomList[0], roomList[i]);
+                GD.Print("room " + i + " is cooking");
+                //turns the list of points into a list of edges
+                for (int j = 0; j < shortPath.Count() -1;j++)
+                {
+                    newEdges.Add(new Edge(shortPath[j], shortPath[j + 1]));
+                }
+                // checks if edge already exists
+                for (int j = 0; j < newEdges.Count(); j++)
+                {
+                    bool alrExists = false;
+                    for (int k = 0; k < polygon.Count(); k++)
+                    {
+                        if (AreTwoEdgesTheSame(newEdges[j], polygon[k]))
+                        {
+                            //ignore it if it already exists
+                            alrExists = true;
+                            break;
+                        }
+                    }
+                    // if it doesnt exists add it to polygon
+                    if (!alrExists)
+                    {
+                        polygon.Add(newEdges[j]);
+                    }
+                }
+            }
+            */
+            currentState = generationState.draw;
+        }
+        else if (currentState == generationState.makeCoridoors)
         {
             //also want to make all the rooms here so need to connect it to room object and make a function to do that  there 
             for (int poly = 0; poly < polygon.Count;poly++)
@@ -412,17 +592,151 @@ public partial class Room_generator : Node2D
                 //make coridoor with towo points from polygon
             }
         }
-        if (currentState == generationState.draw)
+        else if (currentState == generationState.draw)
         {
             #region draw result
             QueueRedraw();
             currentState = generationState.done;
             #endregion
         }
-        if (currentState == generationState.done)
+        else if (currentState == generationState.done)
         {
             return;
         }
+    }
+    public List<pathFindingEnry> PathFindingIteration(List<pathFindingEnry> possiblePaths, Point endPoint)
+    {
+        //find lowest hue
+        float lowestHue = 999999999;
+        int lowestHueIndex = -1;
+        /*
+        if (possiblePaths.Count == 1) 
+        { 
+            if (possiblePaths[0].path.Last().position == endPoint.position)
+            {
+                GD.Print("returning solution");
+                return possiblePaths;
+            }
+        }
+        */
+        for (int i = 0; i < possiblePaths.Count(); i++)
+        {
+            //find path with lowest hueristic
+            if (possiblePaths[i].heuristic < lowestHue)
+            {
+                lowestHue = possiblePaths[i].heuristic;
+                lowestHueIndex = i;
+            }
+            //if (possiblePaths[i].path.Last().position == endPoint.position)
+            if (possiblePaths[i].heuristic == 0)
+            {
+                //when a solution if found
+                List<pathFindingEnry> theWay = new List<pathFindingEnry>();
+                theWay.Add(possiblePaths[i]);
+                //GD.Print("the way has been found");
+                return theWay;
+            }
+        }
+        if (lowestHueIndex == -1)
+        {
+            GD.Print("your trahs");
+        }
+        // do an iteration since not found
+        List<pathFindingEnry> morePossibilities = new List<pathFindingEnry>();
+        morePossibilities = possiblePaths[lowestHueIndex].GoDeeper();
+        possiblePaths.RemoveAt(lowestHueIndex);
+        for (int i = 0; i < morePossibilities.Count;i++)
+        {
+            possiblePaths.Add(morePossibilities[i]);
+        }
+        return PathFindingIteration(possiblePaths, endPoint);
+    }
+    public List<Point> ShortestPath(Point startPoint, Point endPoint) 
+    {
+        //do first pass
+        List<pathFindingEnry> possiblePaths = new List<pathFindingEnry>();
+        List<Point> path = new List<Point>();
+        path.Add(startPoint);
+        pathFindingEnry firstEntry = new pathFindingEnry(path, endPoint);
+        possiblePaths = firstEntry.GoDeeper();
+        possiblePaths = PathFindingIteration(possiblePaths, endPoint);
+        return possiblePaths[0].path;
+        /*
+        //essentialy a* pathfinding
+        int startIndex = -1;
+        int endIndex = -1;
+        for (int i = 0; i < roomList.Count;i++)
+        {
+            GD.Print("shortest path made");
+            if (startPoint.position == roomList[i].position)
+            {
+                startIndex = i;
+            }
+            if (endPoint.position == roomList[i].position)
+            {
+                startIndex = i;
+            }
+        }
+        if (startIndex == -1)
+        {
+            GD.Print("start inex has failed");
+        }
+        if (endIndex == -1)
+        {
+            GD.Print("end index has failed");
+        }
+        // make list of lists that has all the possible paths
+        // whichever list is the shortest will be shortest path
+        // use recursion to make possible paths
+        // want to do hueistics
+
+        // checks all points next to start point
+        // tried to use while loops but it faied so switched to recursion
+        List<Point> path = new List<Point>();
+        List<pathFindingEnry> possiblePaths = new List<pathFindingEnry>();
+        for (int i = 0; i < roomList[startIndex].connectedPoints.Count(); i++)
+        {
+            path = new List<Point>();
+            path.Add(roomList[startIndex].connectedPoints[i]);
+            possiblePaths.Add(new pathFindingEnry(path,endPoint));
+        }
+        bool found = false;
+        List<pathFindingEnry> layerDeeper = new List<pathFindingEnry>();
+        List<Point> shortestPath = new List<Point>();
+        float lowestHue = 99999999999999f;
+        int lowestHueIndex = -1;
+
+        GD.Print("!found");
+        layerDeeper.Clear();
+        //find path with lowest hueristic and goes deeper in that path also checks if found
+        for (int i = 0; i < possiblePaths.Count(); i++)
+        {
+            //find path with lowest hueristic
+            if (possiblePaths[i].heuristic < lowestHue)
+            {
+                lowestHue = possiblePaths[i].heuristic;
+                lowestHueIndex = i;
+            }    
+            // checks weather path is found
+            if (possiblePaths[i].found)
+            {
+                shortestPath = possiblePaths[i].path;
+                found = true;
+                break;
+            }
+
+            //checks layer deeper in point with lowest hue
+            layerDeeper = possiblePaths[lowestHueIndex].GoDeeper();
+            //remove path with lowest index
+            possiblePaths.RemoveAt(lowestHueIndex);
+            //adds items from layerdeeper
+            for (int j = 0;i < layerDeeper.Count();i++)
+            {
+                possiblePaths.Add(layerDeeper[i]);
+            }
+        }
+        return shortestPath;
+        */
     }
     private bool AreTwoEdgesTheSame(Edge edge1, Edge edge2)
     {
