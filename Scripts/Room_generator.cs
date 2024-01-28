@@ -24,7 +24,7 @@ public partial class Room_generator : Node2D
         done
     }
     private generationState currentState = generationState.spreadRooms;
-    private int amountOfRooms = 5;
+    private int amountOfRooms = 200;
 	private float maxXScale = 20f;
     private float minXScale = 10f;
     private float maxYScale = 15f;
@@ -41,7 +41,7 @@ public partial class Room_generator : Node2D
 	//temp statistics stuff Remove at end
 	private int loopCount = 0;
 	//Deleting rooms
-	private float deletingRoomsFactor = 0f; //Needs to be between 0-1 (if its 0.8 it will delete 80% of rooms)
+	private float deletingRoomsFactor = 0.8f; //Needs to be between 0-1 (if its 0.8 it will delete 80% of rooms)
 	private bool removedRooms;
     //Deluaney triangulation
     public int loops = -1;
@@ -54,10 +54,12 @@ public partial class Room_generator : Node2D
     Point superTriPoint3;
     RandomNumberGenerator rng = new RandomNumberGenerator();
     //Remove Edges
-    public List<Point> roomList = new List<Point>();
-    public float edgeDeleteFactor = 0.8f;
+    public float edgeDeleteFactor = 0.3f; //Needs to be between 0-1 (if its 0.8 it will keep 80% of edges)
     //Section stuff
+    public List<Edge> polygonDifference = new List<Edge>();
     public List<List<Point>> sections = new List<List<Point>>();
+    //Coridoor stuff
+    public Vector2 radius = new Vector2(1f,1f);
     public class Triangle
 	{
 		public Edge[] edges = new Edge[3]; //3 edges make a triangle
@@ -198,7 +200,14 @@ public partial class Room_generator : Node2D
 		public Point(Area2D Area)
 		{
 			area = Area;
-			position = Area.Position;
+            if (area == null)
+            {
+                position = new Vector2();
+            }
+            else
+            {
+                position = Area.Position;
+            }
 		}
 		public void AlterPos(Vector2 newPos)
 		{
@@ -206,7 +215,7 @@ public partial class Room_generator : Node2D
 		}
         public void connectPoint(Point newPoint)
         {
-            if (newPoint == null || newPoint.position == this.position || this.connectedPoints.Where(x => x.position == newPoint.position).Count() != 0)
+            if (newPoint == null || newPoint.position == position || connectedPoints.Where(x => x.position == newPoint.position).Count() != 0)
             {
                 GD.Print("invalid point");
                 return;
@@ -241,7 +250,7 @@ public partial class Room_generator : Node2D
             }
             AddChild(instance);
             //instance.GetNode<CollisionShape2D>("Collision").Scale = new Vector2(Map(rng.Randf(), minXScale, maxXScale), Map(rng.Randf(), minYScale, maxYScale)); //generates random scale
-            instance.GetNode<Area2D>(".").Position = new Vector2((float)Math.Round(rng.Randf() * spreadFactor), (float)Math.Round(rng.Randf() * spreadFactor)); //generates initial random position
+            instance.GetNode<Area2D>(".").Position = new Vector2((float)Math.Round(rng.Randf() * spreadFactor * 3f), (float)Math.Round(rng.Randf() * spreadFactor)); //generates initial random position
         }
         #endregion
     }
@@ -420,40 +429,122 @@ public partial class Room_generator : Node2D
                         }
                     }
                 }
+                //After Alg is finished do other stuff
                 currentState = generationState.removeEdges;
-                roomList = MakeGraph(polygon);
-                polygonEdgeList = polygon;
+                polygonEdgeList.Clear();
                 loopCount = 0;
+                //GD.Print("Polygon Edge Count: " + polygon.Count);
+                //GD.Print("Edge List: " + polygonEdgeList.Count);
             }
             #endregion
         }
         else if (currentState == generationState.removeEdges)
         {
             //removes a certain amount of edges
-            int polyCount = polygon.Count;
-            for (int i = 0; i < (int)(edgeDeleteFactor * polyCount); i++)
+            //GD.Print("Edges Removed: "+ (int)(polygon.Count*edgeDeleteFactor));
+            for (int i = 0; polygonEdgeList.Count < (int)(polygon.Count * edgeDeleteFactor);i++)
             {
-                polygon.RemoveAt(rng.RandiRange(0,polygon.Count-1));
+                // make it so that it takes a random edge and not in ordrer as it has too much structure
+                polygonEdgeList.Add(polygon[i]);
+                //GD.Print("loop: "+ polygonEdgeList.Count);
             }
             currentState = generationState.connectSections;
-            GD.Print("polygon count: "+polygon.Count);
-            sections = DetectSections(polygon);
+            //does stuff for next section
+            //GD.Print("loop: " + polygonEdgeList.Count);
+            polygonDifference = EdgeDiff(polygon,polygonEdgeList);
+            sections = DetectSections(polygonEdgeList);
+            //polygon is the entire triangulated thing
+            //polygonEdgeList is edges left over after deleting
+            //polygonDifference = polygon - sections
         }
         else if (currentState == generationState.connectSections)
         {
             if (sections.Count != 1)
             {
                 // add some edges
-                
+                int index = rng.RandiRange(0, polygonDifference.Count - 1);
+                polygonEdgeList.Add(polygonDifference[index]);
+                polygonDifference.RemoveAt(index);
                 // Detect sections
-                //sections = DetectSections(polygon);
-                GD.Print("sections: "+sections.Count);
-                currentState = generationState.draw;
+                sections = DetectSections(polygonEdgeList);
+                //GD.Print("sections: "+sections.Count);
+                //currentState = generationState.draw;
             }
             else
             {
-                currentState = generationState.draw;
+                //remove rooms with no edges connecting to them
+                List<Point> graph = MakeGraph(polygonEdgeList);
+                List<Area2D> removeThese = new List<Area2D>();
+                //check all children to see if they are a point
+                for (int i = 0; i < GetChildCount(); i++)
+                {
+                    if (!graph.Where(x => x.position == GetChild<Area2D>(i).Position).Any())
+                    {
+                        //add to list of items to remove to not mess up the loop
+                        removeThese.Add(GetChild<Area2D>(i));
+                    }
+                }
+                //remove items detected in loop
+                for (int i = 0; i < removeThese.Count; i++)
+                {
+                    RemoveChild(removeThese[i]);
+                }
+                currentState = generationState.makeCoridoors;
             }
+        }
+        else if (currentState == generationState.makeCoridoors)
+        {
+            //make the coridoors horizontal and vertical
+            polygon.Clear();
+            List<Point> graph = MakeGraph(polygonEdgeList);
+            for (int i = 0;i < polygonEdgeList.Count; i++)
+            {
+                //need to check weather the edges with new points intersect existing rooms
+                Point point1 = polygonEdgeList[i].points[0];
+                Point point2 = polygonEdgeList[i].points[1];
+                Point newPoint1 = new Point(null);
+                Point newPoint2 = new Point(null);
+                newPoint1.AlterPos(new Vector2(point1.position.X, point2.position.Y));
+                newPoint2.AlterPos(new Vector2(point2.position.X, point1.position.Y));
+                //all possible paths made
+                /*
+                polygon.Add(new Edge(point1, newPoint1));
+                polygon.Add(new Edge(point2, newPoint1));
+                polygon.Add(new Edge(point1, newPoint2));
+                polygon.Add(new Edge(point2, newPoint2));
+                */
+                //if there is a room in the way dont make the edge
+                //first check where the poits are relative to eachother and adjust accordingly
+                if (point1.position.X <= point2.position.X)
+                {
+                    radius.X = MathF.Abs(radius.X);   
+                }
+                else
+                {
+                    radius.X = -Mathf.Abs(radius.X);
+                }
+                if (point1.position.Y <= point2.position.Y)
+                {
+                    radius.Y = MathF.Abs(radius.Y);
+                }
+                else
+                {
+                    radius.Y = -MathF.Abs(radius.Y);
+                }
+                if ((graph.Where(x => point1.position - radius <= x.position && x.position <= newPoint2.position + radius).Count() == 1) ||
+                    (graph.Where(x => newPoint2.position - radius <= x.position && x.position <= point2.position + radius).Count() == 1))
+                {
+                    polygon.Add(new Edge(point1, newPoint2));
+                    polygon.Add(new Edge(point2, newPoint2));
+                }
+                if (graph.Where(x => point1.position - radius <= x.position && x.position <= newPoint1.position + radius).Count() == 1 ||
+                    graph.Where(x => newPoint1.position - radius <= x.position && x.position <= point2.position + radius).Count() == 1)
+                {
+                    polygon.Add(new Edge(point1, newPoint1));
+                    polygon.Add(new Edge(point2, newPoint1));
+                }
+            }
+            currentState = generationState.draw;
         }
         else if (currentState == generationState.draw)
         {
@@ -472,10 +563,10 @@ public partial class Room_generator : Node2D
         List<List<Point>> sects = new List<List<Point>>(); //we alr have a variable named section so we shorten it to this
         List<Point> newSection = new List<Point>();
         // each new item in sections is a new section (stray edeges not connected to eachother)
-        GD.Print("Edge count: "+edges.Count);
+        //GD.Print("Edge count: "+edges.Count);
         List<Point> graph = MakeGraph(edges);
         bool exists = false;
-        GD.Print("Graph count: "+graph.Count);
+        //GD.Print("Graph count: "+graph.Count);
         for (int i = 0; i < graph.Count;i++)
         {
             //checks weather point exists in sects
@@ -484,8 +575,9 @@ public partial class Room_generator : Node2D
             {
                 for (int k = 0; k < sects[j].Count;k++)
                 {
-                    if (graph[i] == sects[j][k])
+                    if (graph[i].position == sects[j][k].position)
                     {
+                        //GD.Print("exists");
                         exists = true;
                         break;
                     }
@@ -505,35 +597,24 @@ public partial class Room_generator : Node2D
     }
     public List<Point> MakeSection (Point point, List<Point> exclude)
     {
-        List<Point> pts = new List<Point>();
-        List<Point> allPoints = new List<Point>(); 
-        bool visited = false;
-        GD.Print("connected points: "+point.connectedPoints.Count);
-        for (int i = 0; i < point.connectedPoints.Count;i++)
-        {
-            exclude.Add(point.connectedPoints[i]);
-        }
+        List<Point> NewPoints = new List<Point>();
+        exclude.Add(point);
         for (int i = 0; i < point.connectedPoints.Count; i++)
         {
-            visited = false;
-            for (int j = 0; j < exclude.Count; j++)
+            if (exclude.Where(x => x.position == point.connectedPoints[i].position).Count() == 0)
             {
-                if (exclude[j].position == point.connectedPoints[i].position)
+                // check if item alr exists in list, if it does then dont add it
+                NewPoints = MakeSection(point.connectedPoints[i], exclude);
+                for (int j = 0; j < NewPoints.Count; j++)
                 {
-                    visited = true; 
-                    break;
-                }
-            }
-            if (!visited)
-            {
-                pts = MakeSection(point.connectedPoints[i], exclude);
-                for (int k = 0; k < pts.Count; k++)
-                {
-                    allPoints.Add(pts[k]);
+                    if (exclude.Where(x => x.position == NewPoints[j].position).Count() == 0)
+                    {
+                        exclude.Add(NewPoints[j]);
+                    }
                 }
             }
         }
-        return allPoints;
+        return exclude;
     }
     public List<Edge> MakeEdges(List<Point> graph)
     {
@@ -565,9 +646,15 @@ public partial class Room_generator : Node2D
     }
     public List<Point> MakeGraph(List<Edge> EdgeList)
     {
-        GD.Print(EdgeList.Count);
+        //GD.Print(EdgeList.Count);
         // turns a list of edges into a graph
         List<Point> graph = new List<Point>();
+        //clear connected points of all of the points first
+        for (int i = 0; i < EdgeList.Count; i++)
+        {
+            EdgeList[i].points[0].connectedPoints.Clear();
+            EdgeList[i].points[1].connectedPoints.Clear();
+        }
         for (int i = 0; i < EdgeList.Count;i++)
         {
             //connect both points to eachother for each polygon
@@ -575,10 +662,38 @@ public partial class Room_generator : Node2D
             bool newPoint2 = true;
             //GD.Print("point1 is: " + polygon[loopCount].points[0].position);
             //GD.Print("point2 is: " + polygon[loopCount].points[1].position);
+            //InputRegister.Where(x => x.InputType == "dash").Count()
+            /*
+            //new method THAT DOESNT WORK
+            //first point
+            if (graph.Where(x => x.position == EdgeList[i].points[0].position).Count() == 0)
+            {
+                //if point doesn't exist
+                graph.Add(EdgeList[i].points[0]);
+                graph.Last().connectPoint(EdgeList[i].points[1]);
+            }
+            else
+            {
+                // if point exists connect other to it
+                graph.Where(x => x.position == EdgeList[i].points[0].position).First().connectPoint(EdgeList[i].points[1]);
+            }
+            //other point
+            if (graph.Where(x => x.position == EdgeList[i].points[1].position).Count() == 0)
+            {
+                graph.Add(EdgeList[i].points[1]);
+                graph.Last().connectPoint(EdgeList[i].points[0]);
+            }
+            else
+            {
+                // if point exists connect other to it
+                graph.Where(x => x.position == EdgeList[i].points[1].position).First().connectPoint(EdgeList[i].points[1]);
+            }
+            */
+            //adding to existing points
+            //Old method that DOES WORK
             for (int j = 0; j < graph.Count(); j++)
             {
                 //check if point alr exists
-                //GD.Print("roomList: " + roomList[j].position);
                 if (graph[j].position == EdgeList[i].points[0].position)
                 {
                     //point already exists so we want to connect other point to it
@@ -611,14 +726,28 @@ public partial class Room_generator : Node2D
                 graph.Add(EdgeList[i].points[1]);
                 EdgeList[i].points[1].connectPoint(EdgeList[i].points[0]);
             }
+            
         }
         return graph;
     }
-    private bool AreTwoEdgesTheSame(Edge edge1, Edge edge2)
+    public List<Edge> EdgeDiff(List<Edge> totalEdges,List<Edge> subEdges)
+    {
+        //subtracts subEdges from totalEdges
+        List<Edge> edges = new List<Edge>();
+        for (int i = 0; i < totalEdges.Count;i++)
+        {
+            edges.Add(totalEdges[i]);
+        }
+        for (int i = 0; i < subEdges.Count; i++)
+        {
+            edges.RemoveAll(x => AreTwoEdgesTheSame(x, subEdges[i]));
+            //GD.Print("TotalEdges: "+totalEdges.Count);
+        }
+        return edges;
+    }
+    public bool AreTwoEdgesTheSame(Edge edge1, Edge edge2)
     {
         // checks weather two edges have points which are the same
-        //return ((edge1.points[0].position == edge2.points[0].position && edge1.points[1].position == edge2.points[1].position)
-        //    ||  (edge1.points[0].position == edge2.points[1].position && edge1.points[0].position == edge2.points[1].position));
         return (edge1.points[0].position == edge2.points[0].position || edge1.points[0].position == edge2.points[1].position) 
             && (edge1.points[1].position == edge2.points[0].position || edge1.points[1].position == edge2.points[1].position);
     }
