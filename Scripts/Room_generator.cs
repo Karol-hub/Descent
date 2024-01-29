@@ -20,6 +20,7 @@ public partial class Room_generator : Node2D
         removeEdges,
         connectSections,
         makeCoridoors,
+        processCoridoors,
         draw,
         done
     }
@@ -30,8 +31,6 @@ public partial class Room_generator : Node2D
     private float maxYScale = 15f;
     private float minYScale = 8f;
 	private float spreadFactor;
-	public PackedScene room1;
-    public PackedScene room2;
 	//spreading rooms apart
 	private bool spread = false;
 	private int count = 0;
@@ -59,7 +58,9 @@ public partial class Room_generator : Node2D
     public List<Edge> polygonDifference = new List<Edge>();
     public List<List<Point>> sections = new List<List<Point>>();
     //Coridoor stuff
-    public Vector2 radius = new Vector2(1f,1f);
+    List<Point> coridoorGraph = new List<Point>();
+    public List<CoridoorEntry> coridoorList = new List<CoridoorEntry>();
+    public Vector2 coridoorRadius = new Vector2(50f,20f);
     public class Triangle
 	{
 		public Edge[] edges = new Edge[3]; //3 edges make a triangle
@@ -223,12 +224,23 @@ public partial class Room_generator : Node2D
             this.connectedPoints.Add(newPoint);
         }
 	}
+    public class CoridoorEntry
+    {
+        public Area2D area;
+        public Vector2[] vectors = new Vector2[2];
+        public CoridoorEntry(Area2D newArea, Edge polyEdge) 
+        { 
+            area = newArea;
+            vectors[0] = polyEdge.points[0].position;
+            vectors[1] = polyEdge.points[1].position;
+        }
+    }
     public override void _Ready()
 	{
         rng.Seed = 69420;
         //rng.Randomize();  
-        room1 = GD.Load<PackedScene>("res://Scenes/RoomVars/room_var_1.tscn");
-        room2 = GD.Load<PackedScene>("res://Scenes/RoomVars/room_var_2.tscn");
+        PackedScene room1 = GD.Load<PackedScene>("res://Scenes/RoomVars/room_var_1.tscn");
+        PackedScene room2 = GD.Load<PackedScene>("res://Scenes/RoomVars/room_var_2.tscn");
         spreadFactor = amountOfRooms * 5f;
         int randNum;
         #region make rooms
@@ -248,9 +260,11 @@ public partial class Room_generator : Node2D
             {
                 instance = room1.Instantiate();
             }
+            instance.Name = ("rm" + i);
             AddChild(instance);
             //instance.GetNode<CollisionShape2D>("Collision").Scale = new Vector2(Map(rng.Randf(), minXScale, maxXScale), Map(rng.Randf(), minYScale, maxYScale)); //generates random scale
             instance.GetNode<Area2D>(".").Position = new Vector2((float)Math.Round(rng.Randf() * spreadFactor * 3f), (float)Math.Round(rng.Randf() * spreadFactor)); //generates initial random position
+            
         }
         #endregion
     }
@@ -496,7 +510,7 @@ public partial class Room_generator : Node2D
         {
             //make the coridoors horizontal and vertical
             polygon.Clear();
-            List<Point> graph = MakeGraph(polygonEdgeList);
+            coridoorGraph = MakeGraph(polygonEdgeList);
             for (int i = 0;i < polygonEdgeList.Count; i++)
             {
                 //need to check weather the edges with new points intersect existing rooms
@@ -507,42 +521,32 @@ public partial class Room_generator : Node2D
                 newPoint1.AlterPos(new Vector2(point1.position.X, point2.position.Y));
                 newPoint2.AlterPos(new Vector2(point2.position.X, point1.position.Y));
                 //all possible paths made
-                /*
                 polygon.Add(new Edge(point1, newPoint1));
                 polygon.Add(new Edge(point2, newPoint1));
                 polygon.Add(new Edge(point1, newPoint2));
                 polygon.Add(new Edge(point2, newPoint2));
-                */
-                //if there is a room in the way dont make the edge
-                //first check where the poits are relative to eachother and adjust accordingly
-                if (point1.position.X <= point2.position.X)
+            }
+            PackedScene coridoor = GD.Load<PackedScene>("res://Scenes/RoomVars/coridoor.tscn");
+            for (int i = 0; i < polygon.Count; i++)
+            {
+                //make area over all the edges
+                //make sure they are tagges so that they can be recognised later
+                Vector2 pos1 = polygon[i].points[0].position;
+                Vector2 pos2 = polygon[i].points[1].position;
+                Node instance;
+                instance = coridoor.Instantiate();
+                AddChild(instance);
+                instance.Name = "cr" + i;
+                instance.GetNode<Area2D>(".").Position = (pos1 + pos2) / 2;
+                if (pos1 < pos2)
                 {
-                    radius.X = MathF.Abs(radius.X);   
+                    instance.GetNode<Area2D>(".").Scale = ((pos1 - coridoorRadius) - (pos2 + coridoorRadius))/20; 
                 }
                 else
                 {
-                    radius.X = -Mathf.Abs(radius.X);
+                    instance.GetNode<Area2D>(".").Scale = ((pos1 + coridoorRadius) - (pos2 - coridoorRadius))/20;
                 }
-                if (point1.position.Y <= point2.position.Y)
-                {
-                    radius.Y = MathF.Abs(radius.Y);
-                }
-                else
-                {
-                    radius.Y = -MathF.Abs(radius.Y);
-                }
-                if ((graph.Where(x => point1.position - radius <= x.position && x.position <= newPoint2.position + radius).Count() == 1) ||
-                    (graph.Where(x => newPoint2.position - radius <= x.position && x.position <= point2.position + radius).Count() == 1))
-                {
-                    polygon.Add(new Edge(point1, newPoint2));
-                    polygon.Add(new Edge(point2, newPoint2));
-                }
-                if (graph.Where(x => point1.position - radius <= x.position && x.position <= newPoint1.position + radius).Count() == 1 ||
-                    graph.Where(x => newPoint1.position - radius <= x.position && x.position <= point2.position + radius).Count() == 1)
-                {
-                    polygon.Add(new Edge(point1, newPoint1));
-                    polygon.Add(new Edge(point2, newPoint1));
-                }
+                coridoorList.Add(new CoridoorEntry(instance.GetNode<Area2D>("."), polygon[i]));
             }
             currentState = generationState.draw;
         }

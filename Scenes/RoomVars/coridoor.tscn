@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://cx5x3v4fhyg12"]
+
+[ext_resource type="Texture2D" uid="uid://bodp2rfxgaebh" path="res://Assets/Solid Green.png" id="1_mbp3t"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hp3r7"]
+
+[node name="coridoor" type="Area2D"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_hp3r7")
+
+[node name="Sprite2D" type="Sprite2D" parent="CollisionShape2D"]
+position = Vector2(-4.76837e-07, -4.76837e-07)
+scale = Vector2(1.25, 1.25)
+texture = ExtResource("1_mbp3t")
