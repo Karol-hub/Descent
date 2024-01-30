@@ -20,12 +20,12 @@ public partial class Room_generator : Node2D
         removeEdges,
         connectSections,
         makeCoridoors,
-        processCoridoors,
+        makeTilemap,
         draw,
         done
     }
     private generationState currentState = generationState.spreadRooms;
-    private int amountOfRooms = 200;
+    private int amountOfRooms = 100;
 	private float maxXScale = 20f;
     private float minXScale = 10f;
     private float maxYScale = 15f;
@@ -37,10 +37,11 @@ public partial class Room_generator : Node2D
 	private Vector2 direction = Vector2.Zero;
 	private Vector2 displacement;
 	private float step = 4f;
+    private float roomSpreadFactor = 2f;
 	//temp statistics stuff Remove at end
 	private int loopCount = 0;
 	//Deleting rooms
-	private float deletingRoomsFactor = 0.8f; //Needs to be between 0-1 (if its 0.8 it will delete 80% of rooms)
+	private float deletingRoomsFactor = 0.6f; //Needs to be between 0-1 (if its 0.8 it will delete 80% of rooms)
 	private bool removedRooms;
     //Deluaney triangulation
     public int loops = -1;
@@ -61,6 +62,8 @@ public partial class Room_generator : Node2D
     List<Point> coridoorGraph = new List<Point>();
     public List<CoridoorEntry> coridoorList = new List<CoridoorEntry>();
     public Vector2 coridoorRadius = new Vector2(50f,20f);
+    //make Tilemap
+
     public class Triangle
 	{
 		public Edge[] edges = new Edge[3]; //3 edges make a triangle
@@ -336,6 +339,11 @@ public partial class Room_generator : Node2D
                 RemoveChild(roomsToDelete[i]);
             }
             */
+            //spread each room
+            for (int i = 0; i < GetChildCount(); i++)
+            {
+                GetChild<Area2D>(i).Position *= roomSpreadFactor;
+            }
             currentState = generationState.triangulation;
             #endregion
         }
