@@ -464,17 +464,29 @@ public partial class Room_generator : Node2D
         {
             //removes a certain amount of edges
             //GD.Print("Edges Removed: "+ (int)(polygon.Count*edgeDeleteFactor));
+            List<int> indexList = new List<int>();
+            int newIndex;
             for (int i = 0; polygonEdgeList.Count < (int)(polygon.Count * edgeDeleteFactor);i++)
             {
                 // make it so that it takes a random edge and not in ordrer as it has too much structure
-                polygonEdgeList.Add(polygon[i]);
+                rng.Seed = (ulong)(i);
+                newIndex = rng.RandiRange(0,polygon.Count);
+                if (indexList.Where(x => x == newIndex).Count() == 0)
+                {
+                    GD.Print(newIndex);
+                    //if hte edge doesnt already exist
+                    polygonEdgeList.Add(polygon[i]);
+                    indexList.Add(newIndex);
+                }
                 //GD.Print("loop: "+ polygonEdgeList.Count);
             }
-            currentState = generationState.connectSections;
+            GD.Print("Count: "+indexList.Count);
+            GD.Print("Poly Count: " +polygonEdgeList.Count);
+            currentState = generationState.draw;
             //does stuff for next section
             //GD.Print("loop: " + polygonEdgeList.Count);
-            polygonDifference = EdgeDiff(polygon,polygonEdgeList);
-            sections = DetectSections(polygonEdgeList);
+            //polygonDifference = EdgeDiff(polygon,polygonEdgeList);
+            //sections = DetectSections(polygonEdgeList);
             //polygon is the entire triangulated thing
             //polygonEdgeList is edges left over after deleting
             //polygonDifference = polygon - sections
@@ -775,13 +787,13 @@ public partial class Room_generator : Node2D
 		}
 		Vector2 position1;
 		Vector2 position2;
-		for (int poly = 0;poly < polygon.Count;poly++) // for each triangle in triangulation
+		for (int poly = 0;poly < polygonEdgeList.Count;poly++) // for each triangle in triangulation
 		{
             //get position of both points on the edge
-			position1 = polygon[poly].points[0].position;
-			position2 = polygon[poly].points[1].position;
+			position1 = polygonEdgeList[poly].points[0].position;
+			position2 = polygonEdgeList[poly].points[1].position;
             //draw line between two points
-            DrawLine(position1,position2, new Color(1f, 0.752941f, 0.796078f, 1f), 10f);
+            DrawLine(position1,position2, new Color(1f, 0.752941f, 0.796078f, 1f), -5f);
 		}
     }
 }	
