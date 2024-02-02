@@ -453,7 +453,6 @@ public partial class Room_generator : Node2D
                 }
                 //After Alg is finished do other stuff
                 currentState = generationState.removeEdges;
-                polygonEdgeList.Clear();
                 loopCount = 0;
                 //GD.Print("Polygon Edge Count: " + polygon.Count);
                 //GD.Print("Edge List: " + polygonEdgeList.Count);
@@ -464,18 +463,19 @@ public partial class Room_generator : Node2D
         {
             //removes a certain amount of edges
             //GD.Print("Edges Removed: "+ (int)(polygon.Count*edgeDeleteFactor));
+            polygonEdgeList.Clear();
             List<int> indexList = new List<int>();
             int newIndex;
-            for (int i = 0; polygonEdgeList.Count < (int)(polygon.Count * edgeDeleteFactor);i++)
+            for (int i = 0; polygonEdgeList.Count() < (int)(polygon.Count * edgeDeleteFactor);i++)
             {
                 // make it so that it takes a random edge and not in ordrer as it has too much structure
                 rng.Seed = (ulong)(i);
-                newIndex = rng.RandiRange(0,polygon.Count);
-                if (indexList.Where(x => x == newIndex).Count() == 0)
+                newIndex = rng.RandiRange(0,polygon.Count());
+                if (!indexList.Contains(newIndex))
                 {
                     GD.Print(newIndex);
-                    //if hte edge doesnt already exist
-                    polygonEdgeList.Add(polygon[i]);
+                    //if the edge doesnt already exist
+                    polygonEdgeList.Add(polygon[newIndex]);
                     indexList.Add(newIndex);
                 }
                 //GD.Print("loop: "+ polygonEdgeList.Count);
@@ -485,8 +485,8 @@ public partial class Room_generator : Node2D
             currentState = generationState.draw;
             //does stuff for next section
             //GD.Print("loop: " + polygonEdgeList.Count);
-            //polygonDifference = EdgeDiff(polygon,polygonEdgeList);
-            //sections = DetectSections(polygonEdgeList);
+            polygonDifference = EdgeDiff(polygon,polygonEdgeList);
+            sections = DetectSections(polygonEdgeList);
             //polygon is the entire triangulated thing
             //polygonEdgeList is edges left over after deleting
             //polygonDifference = polygon - sections
@@ -585,7 +585,6 @@ public partial class Room_generator : Node2D
     public List<List<Point>> DetectSections(List<Edge> edges)
     {
         List<List<Point>> sects = new List<List<Point>>(); //we alr have a variable named section so we shorten it to this
-        List<Point> newSection = new List<Point>();
         // each new item in sections is a new section (stray edeges not connected to eachother)
         //GD.Print("Edge count: "+edges.Count);
         List<Point> graph = MakeGraph(edges);
