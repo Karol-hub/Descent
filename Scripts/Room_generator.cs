@@ -63,7 +63,11 @@ public partial class Room_generator : Node2D
     public List<CoridoorEntry> coridoorList = new List<CoridoorEntry>();
     public Vector2 coridoorRadius = new Vector2(50f,20f);
     //make Tilemap
-
+    TileMap tile;
+    Vector2 minCoord = new Vector2(9999, 9999);
+    Vector2 maxCoord = new Vector2(-9999, -9999);
+    Vector2 currentCoord = new Vector2();
+    Area2D tileMapCheck = new Area2D();
     public class Triangle
 	{
 		public Edge[] edges = new Edge[3]; //3 edges make a triangle
@@ -240,11 +244,12 @@ public partial class Room_generator : Node2D
     }
     public override void _Ready()
 	{
+        tile = GetNode<TileMap>("../TileMap");
         rng.Seed = 69420;
         //rng.Randomize();  
         PackedScene room1 = GD.Load<PackedScene>("res://Scenes/RoomVars/room_var_1.tscn");
         PackedScene room2 = GD.Load<PackedScene>("res://Scenes/RoomVars/room_var_2.tscn");
-        spreadFactor = amountOfRooms * 5f;
+        spreadFactor = amountOfRooms * 10f;
         int randNum;
         #region make rooms
         for (int i = 0; i < amountOfRooms; i++) //makes a certain amount of "rooms"
@@ -255,18 +260,14 @@ public partial class Room_generator : Node2D
             {
                 instance = room1.Instantiate();
             }
-            else if (randNum == 1)
-            {
-                instance = room2.Instantiate();
-            }
             else
             {
-                instance = room1.Instantiate();
+                instance = room2.Instantiate();
             }
             instance.Name = ("rm" + i);
             AddChild(instance);
             //instance.GetNode<CollisionShape2D>("Collision").Scale = new Vector2(Map(rng.Randf(), minXScale, maxXScale), Map(rng.Randf(), minYScale, maxYScale)); //generates random scale
-            instance.GetNode<Area2D>(".").Position = new Vector2((float)Math.Round(rng.Randf() * spreadFactor * 3f), (float)Math.Round(rng.Randf() * spreadFactor)); //generates initial random position
+            instance.GetNode<Area2D>(".").Position = new Vector2(Mathf.Round(rng.Randf() * spreadFactor * 3f), Mathf.Round(rng.Randf() * spreadFactor)); //generates initial random position
             
         }
         #endregion
@@ -287,9 +288,10 @@ public partial class Room_generator : Node2D
                         displacement = GetChild<Area2D>(i).Position - GetChild<Area2D>(i).GetOverlappingAreas()[j].Position;
                         direction += (10 / displacement.Length()) * displacement.Normalized(); //finds difference between original area and overlapping area
                     }
+                    // Rounds the result to make the numbers easier to work with
                     direction = direction.Normalized() * step;
-                    direction.X = (float)Math.Round(direction.X) * step;
-                    direction.Y = (float)Math.Round(direction.Y) * step;
+                    direction.X = Mathf.Round(direction.X) * step;
+                    direction.Y = Mathf.Round(direction.Y) * step;
                     GetChild<Area2D>(i).Position += direction;
                 }
                 else
@@ -330,7 +332,7 @@ public partial class Room_generator : Node2D
             #region delete rooms
             for (int i = 0; i < (int)(amountOfRooms * deletingRoomsFactor); i++)
             {
-                count = rng.RandiRange(0, GetChildCount());
+                count = rng.RandiRange(0, GetChildCount()-1);
                 RemoveChild(GetChild<Area2D>(count));
             }
             /*
@@ -470,19 +472,19 @@ public partial class Room_generator : Node2D
             {
                 // make it so that it takes a random edge and not in ordrer as it has too much structure
                 rng.Seed = (ulong)(i);
-                newIndex = rng.RandiRange(0,polygon.Count());
+                newIndex = rng.RandiRange(0,polygon.Count()-1);
                 if (!indexList.Contains(newIndex))
                 {
-                    GD.Print(newIndex);
+                    //GD.Print(newIndex);
                     //if the edge doesnt already exist
                     polygonEdgeList.Add(polygon[newIndex]);
                     indexList.Add(newIndex);
                 }
                 //GD.Print("loop: "+ polygonEdgeList.Count);
             }
-            GD.Print("Count: "+indexList.Count);
-            GD.Print("Poly Count: " +polygonEdgeList.Count);
-            currentState = generationState.draw;
+            //GD.Print("Count: "+indexList.Count);
+            //GD.Print("Poly Count: " +polygonEdgeList.Count);
+            currentState = generationState.connectSections;
             //does stuff for next section
             //GD.Print("loop: " + polygonEdgeList.Count);
             polygonDifference = EdgeDiff(polygon,polygonEdgeList);
@@ -568,7 +570,65 @@ public partial class Room_generator : Node2D
                 }
                 coridoorList.Add(new CoridoorEntry(instance.GetNode<Area2D>("."), polygon[i]));
             }
-            currentState = generationState.draw;
+            //Do stuff to preparae for next stage
+            currentState = generationState.makeTilemap;
+            //Find the bottom left and top right of the ponts
+            List<Point> graph = MakeGraph(polygon);
+            Vector2 pos = new Vector2();
+            for (int i = 0; i < graph.Count; i++)
+            {
+                pos = graph[i].position;
+                if (pos.X < minCoord.X)
+                { minCoord.X = pos.X; }
+                if (pos.Y < minCoord.Y)
+                { minCoord.Y = pos.Y; }
+                if (pos.X > maxCoord.X)
+                { maxCoord.X = pos.X; }
+                if (pos.Y > maxCoord.Y)
+                { maxCoord.Y = pos.Y; }
+            }
+            //one tile is 20 units so need to int division it so it alligns with tilemap
+            minCoord = new Vector2(minCoord.X - (minCoord.X % 20) - 100, minCoord.Y - (minCoord.Y % 20) - 100);
+            maxCoord = new Vector2(maxCoord.X - (maxCoord.X % 20) + 100, maxCoord.Y - (maxCoord.Y % 20) + 100);
+            currentCoord = minCoord;
+            tileMapCheck.Position = minCoord;
+            GD.Print("minCoord: "+minCoord);
+            GD.Print("maxCoord: " +maxCoord);
+        }
+        else if (currentState == generationState.makeTilemap)
+        {
+            //old Method very slow
+            /*
+            for (; currentCoord.X < maxCoord.X;currentCoord.Y += 20)
+            {
+                currentCoord.X = minCoord.X;
+                tileMapCheck.Position = currentCoord;
+                if (tileMapCheck.HasOverlappingAreas())
+                {
+                    if (tileMapCheck.GetOverlappingAreas().Any())//.Where(x => x.Name.ToString().Substring(0,2) == "rm").Any())
+                    {
+                        //If the check is overlapping with a room
+                        tile.SetCell(1, (Vector2I)new Vector2(Mathf.Floor(currentCoord.X / 20), Mathf.Floor(currentCoord.Y / 20)), 1, new Vector2I(1,1));
+                        GD.Print("Setting Coords at: "+currentCoord);
+                    }
+                }
+            }
+            if (currentCoord.Y > maxCoord.Y)
+            {
+                currentState = generationState.draw;
+            }
+            */
+            foreach (Area2D child in GetChildren())
+            {
+                currentCoord = new Vector2(child.Position.X - (child.Position.X % 20), child.Position.Y - (child.Position.Y % 20));
+                tileMapCheck.Position = currentCoord;
+                int up;
+                int down;
+                int left;
+                int right;
+                
+                
+            }
         }
         else if (currentState == generationState.draw)
         {
