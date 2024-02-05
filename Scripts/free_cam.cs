@@ -9,7 +9,7 @@ public partial class free_cam : Node2D
     private Vector2 zoom;
     private float multiplier = 5f;
     private Camera2D cam;
-    private float zoomStep = 0.1f;
+    private float zoomStep = 0.2f;
 
     public override void _Ready()
     {

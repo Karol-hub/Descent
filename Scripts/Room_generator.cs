@@ -573,6 +573,7 @@ public partial class Room_generator : Node2D
             //Do stuff to preparae for next stage
             currentState = generationState.makeTilemap;
             //Find the bottom left and top right of the ponts
+            loops = 0;
             List<Point> graph = MakeGraph(polygon);
             Vector2 pos = new Vector2();
             for (int i = 0; i < graph.Count; i++)
@@ -618,17 +619,6 @@ public partial class Room_generator : Node2D
                 currentState = generationState.draw;
             }
             */
-            foreach (Area2D child in GetChildren())
-            {
-                currentCoord = new Vector2(child.Position.X - (child.Position.X % 20), child.Position.Y - (child.Position.Y % 20));
-                tileMapCheck.Position = currentCoord;
-                int up;
-                int down;
-                int left;
-                int right;
-                
-                
-            }
         }
         else if (currentState == generationState.draw)
         {
