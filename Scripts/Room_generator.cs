@@ -1,4 +1,4 @@
-using Godot;
+    using Godot;
 using Godot.Collections;
 using System;
 using System.Collections.Generic;
@@ -25,7 +25,7 @@ public partial class Room_generator : Node2D
         done
     }
     private generationState currentState = generationState.spreadRooms;
-    private int amountOfRooms = 100;
+    private int amountOfRooms = 15;
 	private float maxXScale = 20f;
     private float minXScale = 10f;
     private float maxYScale = 15f;
@@ -41,7 +41,7 @@ public partial class Room_generator : Node2D
 	//temp statistics stuff Remove at end
 	private int loopCount = 0;
 	//Deleting rooms
-	private float deletingRoomsFactor = 0.6f; //Needs to be between 0-1 (if its 0.8 it will delete 80% of rooms)
+	private float deletingRoomsFactor = 0.8f; //Needs to be between 0-1 (if its 0.8 it will delete 80% of rooms)
 	private bool removedRooms;
     //Deluaney triangulation
     public int loops = -1;
@@ -595,29 +595,92 @@ public partial class Room_generator : Node2D
             tileMapCheck.Position = minCoord;
             GD.Print("minCoord: "+minCoord);
             GD.Print("maxCoord: " +maxCoord);
+            loops = 0;
         }
         else if (currentState == generationState.makeTilemap)
         {
             //old Method very slow
-            /*
-            for (; currentCoord.X < maxCoord.X;currentCoord.Y += 20)
+            if (currentCoord.X < maxCoord.X)
             {
-                currentCoord.X = minCoord.X;
                 tileMapCheck.Position = currentCoord;
                 if (tileMapCheck.HasOverlappingAreas())
                 {
                     if (tileMapCheck.GetOverlappingAreas().Any())//.Where(x => x.Name.ToString().Substring(0,2) == "rm").Any())
                     {
                         //If the check is overlapping with a room
-                        tile.SetCell(1, (Vector2I)new Vector2(Mathf.Floor(currentCoord.X / 20), Mathf.Floor(currentCoord.Y / 20)), 1, new Vector2I(1,1));
+                        tile.SetCell(1,ToTileCoords(currentCoord) , 1, new Vector2I(1,1));
                         GD.Print("Setting Coords at: "+currentCoord);
                     }
                 }
+                currentCoord.X += 16;
+            }
+            else
+            {
+                currentCoord.X = minCoord.X;
+                currentCoord.Y += 16;
             }
             if (currentCoord.Y > maxCoord.Y)
             {
                 currentState = generationState.draw;
             }
+            /*
+            GetChild<Area2D>(loops);
+            int xRange = 1;
+            int yRange = 1;
+            bool xDone = false;
+            bool yDone = false;
+            bool foundAll = false;
+            tileMapCheck.Position = GetChild<Area2D>(loops).Position;
+            CheckTile(GetChild<Area2D>(loops));
+            while (!foundAll)
+            {
+                if (xRange % 2 == 1)
+                {
+                    for (int i = 0; i < xRange; i++)
+                    {
+                        tileMapCheck.Position += new Vector2(16f, 0f);
+                        xDone = CheckTile(GetChild<Area2D>(loops));
+                    }
+                    if (!xDone) 
+                    { xRange += 1; }
+                    else { tileMapCheck.Position -= new Vector2(16f, 0f); }
+                }
+                else if (xRange % 2 == 0)
+                {
+                    for (int i = 0; i < xRange; i++)
+                    {
+                        tileMapCheck.Position -= new Vector2(16f, 0f);
+                        xDone = CheckTile(GetChild<Area2D>(loops));
+                    }
+                    if (!xDone)
+                    { xRange += 1; }
+                    else { tileMapCheck.Position += new Vector2(16f, 0f); }
+                }
+
+                if (yRange % 2 == 1)
+                {
+                    for (int i = 0; i < yRange; i++)
+                    {
+                        tileMapCheck.Position += new Vector2(0f, 16f);
+                        yDone = CheckTile(GetChild<Area2D>(loops));
+                    }
+                    if (!yDone)
+                    { yRange += 1; }
+                    else { tileMapCheck.Position -= new Vector2(0f, 16f); }
+                }
+                else if (yRange % 2 == 0)
+                {
+                    for (int i = 0; i < yRange; i++)
+                    {
+                        tileMapCheck.Position -= new Vector2(0f,160f);
+                        yDone = CheckTile(GetChild<Area2D>(loops));
+                    }
+                    if (!yDone)
+                    { yRange += 1; }
+                    else { tileMapCheck.Position += new Vector2(0f, 16f); }
+                }
+            }
+            loops += 1;
             */
         }
         else if (currentState == generationState.draw)
@@ -631,6 +694,23 @@ public partial class Room_generator : Node2D
         {
             return;
         }
+    }
+    private Vector2I ToTileCoords(Vector2 coords)
+    {
+        Vector2I newCoords = new Vector2I();
+        newCoords.X = (int)(coords.X - (coords.X % 16));
+        newCoords.Y = (int)(coords.Y - (coords.Y % 16));
+        return newCoords;
+    }
+    public bool CheckTile(Area2D child)
+    {
+        if (tileMapCheck.OverlapsArea(child))
+        {
+            //remove the tile
+            tile.SetCell(0, ToTileCoords(child.Position), -1, null, 1);
+            return false;
+        }
+        return true;
     }
     public List<List<Point>> DetectSections(List<Edge> edges)
     {
