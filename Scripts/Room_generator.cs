@@ -67,7 +67,8 @@ public partial class Room_generator : Node2D
     Vector2 minCoord = new Vector2(9999, 9999);
     Vector2 maxCoord = new Vector2(-9999, -9999);
     Vector2 currentCoord = new Vector2();
-    Area2D tileMapCheck = new Area2D();
+    PackedScene tileMapCheckScene;
+    Area2D tileMapCheck;
     public class Triangle
 	{
 		public Edge[] edges = new Edge[3]; //3 edges make a triangle
@@ -245,6 +246,7 @@ public partial class Room_generator : Node2D
     public override void _Ready()
 	{
         tile = GetNode<TileMap>("../TileMap");
+        tileMapCheckScene = GD.Load<PackedScene>("res://Scenes/room_generator.tscn");
         rng.Seed = 69420;
         //rng.Randomize();  
         PackedScene room1 = GD.Load<PackedScene>("res://Scenes/RoomVars/room_var_1.tscn");
@@ -280,7 +282,7 @@ public partial class Room_generator : Node2D
             count = 0; //resets count to check overlapping areas of child
             for (int i = 0; i < amountOfRooms; i++)
             {
-                if (GetChild<Area2D>(i).HasOverlappingAreas()) //if there are overlapping areas on the child
+                if (GetChild<Area2D>(i).HasOverlappingAreas() && GetChild<Area2D>(i) != null) //if there are overlapping areas on the child
                 {
                     direction = Vector2.Zero; //resets direction to 0
                     for (int j = 0; j < GetChild<Area2D>(i).GetOverlappingAreas().Count; j++) //check every overlapping area
@@ -591,6 +593,7 @@ public partial class Room_generator : Node2D
             //one tile is 20 units so need to int division it so it alligns with tilemap
             minCoord = new Vector2(minCoord.X - (minCoord.X % 20) - 100, minCoord.Y - (minCoord.Y % 20) - 100);
             maxCoord = new Vector2(maxCoord.X - (maxCoord.X % 20) + 100, maxCoord.Y - (maxCoord.Y % 20) + 100);
+            tileMapCheck = (Area2D)tileMapCheckScene.Instantiate();
             currentCoord = minCoord;
             tileMapCheck.Position = minCoord;
             GD.Print("minCoord: "+minCoord);
@@ -602,20 +605,27 @@ public partial class Room_generator : Node2D
             //old Method very slow
             if (currentCoord.X < maxCoord.X)
             {
+                GD.Print(currentCoord);
                 tileMapCheck.Position = currentCoord;
                 if (tileMapCheck.HasOverlappingAreas())
                 {
+                    tile.SetCell(1, ToTileCoords(currentCoord), 1, new Vector2I(1, 1));
+                    GD.Print("Setting Coords at: " + currentCoord);
+                    /*
                     if (tileMapCheck.GetOverlappingAreas().Any())//.Where(x => x.Name.ToString().Substring(0,2) == "rm").Any())
                     {
                         //If the check is overlapping with a room
                         tile.SetCell(1,ToTileCoords(currentCoord) , 1, new Vector2I(1,1));
                         GD.Print("Setting Coords at: "+currentCoord);
                     }
+                    */
                 }
+                //GD.Print("Iterate Coord: " + currentCoord);
                 currentCoord.X += 16;
             }
             else
             {
+                //GD.Print("Y coord Iterated: " + currentCoord);
                 currentCoord.X = minCoord.X;
                 currentCoord.Y += 16;
             }
