@@ -123,23 +123,10 @@ public partial class Room_generator : Node2D
                 edges[2] = new Edge(point1, point3);
             }
             #endregion
-            findCircumcentre();
-            findRadius();
+            FindCircumcentre();
+            FindRadius();
         }
-		public Edge ContainsEdge(Edge edgeToCompare)
-		{
-			Point point1 = edgeToCompare.points[0];
-			Point point2 = edgeToCompare.points[0];
-			for (int i = 0;i<3;i++)
-			{
-				if (edges[i].HasPoints(point1, point2))
-				{
-					return edges[i];
-				}
-			}
-			return null;
-		}
-		public bool isWithin(Point newNode)
+		public bool IsWithin(Point newNode)
 		{
 			// check weather the new node lies within the circumcentre
 			// pythag to check if it lies within
@@ -152,7 +139,21 @@ public partial class Room_generator : Node2D
                 return false;
             }
 		}
-		private void findCircumcentre()
+        private Edge ContainsEdge(Edge edgeToCompare)
+        {
+            Point point1 = edgeToCompare.points[0];
+            Point point2 = edgeToCompare.points[0];
+            for (int i = 0; i < 3; i++)
+            {
+                //If edges contains the two points
+                if (edges[i].HasPoints(point1, point2))
+                {
+                    return edges[i];
+                }
+            }
+            return null;
+        }
+        private void FindCircumcentre()
 		{
             //find circumcentre of the circumcircle
             // equation from https://www.omnicalculator.com/math/circumcenter-of-a-triangle
@@ -162,7 +163,7 @@ public partial class Room_generator : Node2D
             circumcentre.X = ((t * (points[0].position.Y - points[2].position.Y)) - (u * (points[0].position.Y - points[1].position.Y))) / (2 * J);
             circumcentre.Y = ((u * (points[0].position.X - points[1].position.X)) - (t * (points[0].position.X - points[2].position.X))) / (2 * J);
 		}
-		private void findRadius()
+		private void FindRadius()
 		{
 			//find radius of circumcircle that the edges lie on
 			//pythag to find distance between points and centre 
@@ -176,18 +177,6 @@ public partial class Room_generator : Node2D
 		{
 			points[0] = point1; points[1] = point2; //set value of the two points
 		}
-		public Vector2 midpoint() //finds midpoint of edges
-		{
-			Vector2 mid;
-			mid.X = 0.5f * (points[0].position.X + points[1].position.X);
-            mid.Y = 0.5f * (points[0].position.Y + points[1].position.Y);
-			return mid;
-        }
-		public float perpendicular() //finds perepndicular gradient of line that links the two points
-		{
-			float gradient = (points[0].position.X - points[1].position.X)/ (points[0].position.Y - points[1].position.Y);
-			return (-1f / gradient);
-        }
 		public bool HasPoints(Point point1, Point point2)//checks weather the edge is composed of specified points
 		{
 			if ((points[0] == point1 && points[1] == point2) || (points[0] == point2 && points[1] == point1))
@@ -222,7 +211,7 @@ public partial class Room_generator : Node2D
 		{
 			position = newPos;
 		}
-        public void connectPoint(Point newPoint)
+        public void ConnectPoint(Point newPoint)
         {
             if (newPoint == null || newPoint.position == position || connectedPoints.Where(x => x.position == newPoint.position).Count() != 0)
             {
@@ -376,7 +365,7 @@ public partial class Room_generator : Node2D
                 // checks which triangles are invalid because new point
                 for (int y = 0; y < triangulation.Count(); y++)
                 {
-                    if (triangulation[y].isWithin(newPoint))
+                    if (triangulation[y].IsWithin(newPoint))
                     {
                         badTriangles.Add(triangulation[y]);
                     }
@@ -605,7 +594,7 @@ public partial class Room_generator : Node2D
         else if (currentState == generationState.makeTilemap)
         {
             //old Method very slow
-            /*
+            
             if (currentCoord.X < maxCoord.X)
             {
                 //GD.Print(currentCoord);
@@ -624,7 +613,7 @@ public partial class Room_generator : Node2D
                 currentCoord.X = minCoord.X;
                 currentCoord.Y += 16;
             }
-            */
+            
 
             if (currentCoord.Y > maxCoord.Y)
             {
@@ -858,14 +847,14 @@ public partial class Room_generator : Node2D
                 {
                     //point already exists so we want to connect other point to it
                     //graph[j].connectedPoints.Add(EdgeList[i].points[1]);
-                    graph[j].connectPoint(EdgeList[i].points[1]);
+                    graph[j].ConnectPoint(EdgeList[i].points[1]);
                     newPoint1 = false;
                 }
                 if (graph[j].position == EdgeList[i].points[1].position)
                 {
                     //want to do the same for other point
                     //graph[j].connectedPoints.Add(EdgeList[i].points[0]);
-                    graph[j].connectPoint(EdgeList[i].points[0]);
+                    graph[j].ConnectPoint(EdgeList[i].points[0]);
                     newPoint2 = false;
                 }
                 if (!newPoint1 && !newPoint2)
@@ -878,13 +867,13 @@ public partial class Room_generator : Node2D
             {
                 //if point doesnt exist make it and connect other point to it
                 graph.Add(EdgeList[i].points[0]);
-                EdgeList[i].points[0].connectPoint(EdgeList[i].points[1]);
+                EdgeList[i].points[0].ConnectPoint(EdgeList[i].points[1]);
             }
             if (newPoint2)
             {
                 //same thing for other point
                 graph.Add(EdgeList[i].points[1]);
-                EdgeList[i].points[1].connectPoint(EdgeList[i].points[0]);
+                EdgeList[i].points[1].ConnectPoint(EdgeList[i].points[0]);
             }
             
         }
