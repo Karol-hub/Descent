@@ -591,9 +591,11 @@ public partial class Room_generator : Node2D
                 { maxCoord.Y = pos.Y; }
             }
             //one tile is 20 units so need to int division it so it alligns with tilemap
-            minCoord = new Vector2(minCoord.X - (minCoord.X % 20) - 100, minCoord.Y - (minCoord.Y % 20) - 100);
-            maxCoord = new Vector2(maxCoord.X - (maxCoord.X % 20) + 100, maxCoord.Y - (maxCoord.Y % 20) + 100);
-            tileMapCheck = (Area2D)tileMapCheckScene.Instantiate();
+            minCoord = new Vector2(minCoord.X - (minCoord.X % 20) - 500, minCoord.Y - (minCoord.Y % 20) - 500);
+            maxCoord = new Vector2(maxCoord.X - (maxCoord.X % 20) + 500, maxCoord.Y - (maxCoord.Y % 20) + 500);
+            Node tempNode = tileMapCheckScene.Instantiate();
+            AddChild(tempNode);
+            tileMapCheck = tempNode.GetNode<Area2D>(".");
             currentCoord = minCoord;
             tileMapCheck.Position = minCoord;
             GD.Print("minCoord: "+minCoord);
@@ -603,22 +605,15 @@ public partial class Room_generator : Node2D
         else if (currentState == generationState.makeTilemap)
         {
             //old Method very slow
+            /*
             if (currentCoord.X < maxCoord.X)
             {
-                GD.Print(currentCoord);
+                //GD.Print(currentCoord);
                 tileMapCheck.Position = currentCoord;
-                if (tileMapCheck.HasOverlappingAreas())
+                if (!tileMapCheck.HasOverlappingAreas())
                 {
-                    tile.SetCell(1, ToTileCoords(currentCoord), 1, new Vector2I(1, 1));
-                    GD.Print("Setting Coords at: " + currentCoord);
-                    /*
-                    if (tileMapCheck.GetOverlappingAreas().Any())//.Where(x => x.Name.ToString().Substring(0,2) == "rm").Any())
-                    {
-                        //If the check is overlapping with a room
-                        tile.SetCell(1,ToTileCoords(currentCoord) , 1, new Vector2I(1,1));
-                        GD.Print("Setting Coords at: "+currentCoord);
-                    }
-                    */
+                    tile.SetCell(0, ToTileCoords(currentCoord), 0, new Vector2I(1, 1));
+                    //GD.Print("Setting Coords at: " + ToTileCoords(currentCoord));
                 }
                 //GD.Print("Iterate Coord: " + currentCoord);
                 currentCoord.X += 16;
@@ -629,6 +624,8 @@ public partial class Room_generator : Node2D
                 currentCoord.X = minCoord.X;
                 currentCoord.Y += 16;
             }
+            */
+
             if (currentCoord.Y > maxCoord.Y)
             {
                 currentState = generationState.draw;
@@ -708,8 +705,8 @@ public partial class Room_generator : Node2D
     private Vector2I ToTileCoords(Vector2 coords)
     {
         Vector2I newCoords = new Vector2I();
-        newCoords.X = (int)(coords.X - (coords.X % 16));
-        newCoords.Y = (int)(coords.Y - (coords.Y % 16));
+        newCoords.X = (int)((coords.X - (coords.X % 16))/16);
+        newCoords.Y = (int)((coords.Y - (coords.Y % 16))/16);
         return newCoords;
     }
     public bool CheckTile(Area2D child)
