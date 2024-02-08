@@ -25,7 +25,7 @@ public partial class Room_generator : Node2D
         done
     }
     private generationState currentState = generationState.spreadRooms;
-    private int amountOfRooms = 15;
+    private int amountOfRooms = 100;
 	private float maxXScale = 20f;
     private float minXScale = 10f;
     private float maxYScale = 15f;
@@ -41,7 +41,7 @@ public partial class Room_generator : Node2D
 	//temp statistics stuff Remove at end
 	private int loopCount = 0;
 	//Deleting rooms
-	private float deletingRoomsFactor = 0.8f; //Needs to be between 0-1 (if its 0.8 it will delete 80% of rooms)
+	private float deletingRoomsFactor = 0.6f; //Needs to be between 0-1 (if its 0.8 it will delete 80% of rooms)
 	private bool removedRooms;
     //Deluaney triangulation
     public int loops = -1;
@@ -68,7 +68,9 @@ public partial class Room_generator : Node2D
     Vector2 maxCoord = new Vector2(-9999, -9999);
     Vector2 currentCoord = new Vector2();
     PackedScene tileMapCheckScene;
-    Area2D tileMapCheck;
+    List<Area2D> tileMapCheck = new List<Area2D>();
+    //Area2D tileMapCheck;
+    int checkAmount;
     public class Triangle
 	{
 		public Edge[] edges = new Edge[3]; //3 edges make a triangle
@@ -235,7 +237,7 @@ public partial class Room_generator : Node2D
     public override void _Ready()
 	{
         tile = GetNode<TileMap>("../TileMap");
-        tileMapCheckScene = GD.Load<PackedScene>("res://Scenes/room_generator.tscn");
+        tileMapCheckScene = GD.Load<PackedScene>("res://Scenes/tile_map_check.tscn");
         rng.Seed = 69420;
         //rng.Randomize();  
         PackedScene room1 = GD.Load<PackedScene>("res://Scenes/RoomVars/room_var_1.tscn");
@@ -580,104 +582,54 @@ public partial class Room_generator : Node2D
                 { maxCoord.Y = pos.Y; }
             }
             //one tile is 20 units so need to int division it so it alligns with tilemap
-            minCoord = new Vector2(minCoord.X - (minCoord.X % 20) - 500, minCoord.Y - (minCoord.Y % 20) - 500);
-            maxCoord = new Vector2(maxCoord.X - (maxCoord.X % 20) + 500, maxCoord.Y - (maxCoord.Y % 20) + 500);
-            Node tempNode = tileMapCheckScene.Instantiate();
-            AddChild(tempNode);
-            tileMapCheck = tempNode.GetNode<Area2D>(".");
+            minCoord = new Vector2(minCoord.X - (minCoord.X % 16) - 500, minCoord.Y - (minCoord.Y % 16) - 500);
+            maxCoord = new Vector2(maxCoord.X - (maxCoord.X % 16) + 500, maxCoord.Y - (maxCoord.Y % 16) + 500);
             currentCoord = minCoord;
-            tileMapCheck.Position = minCoord;
-            GD.Print("minCoord: "+minCoord);
-            GD.Print("maxCoord: " +maxCoord);
+            checkAmount = (int)Mathf.Ceil((maxCoord.Y - minCoord.Y) / 16);
+            Node tempNode;
+            for (int i = 0; i < checkAmount; i++)
+            {
+                tempNode = tileMapCheckScene.Instantiate();
+                AddChild(tempNode);
+                tileMapCheck.Add(tempNode.GetNode<Area2D>("."));
+                tileMapCheck[i].Position = currentCoord + new Vector2(0f, 16f * i);
+            }
+            //GD.Print("minCoord: "+minCoord);
+            //GD.Print("maxCoord: " +maxCoord);
             loops = 0;
         }
         else if (currentState == generationState.makeTilemap)
         {
             //old Method very slow
-            
+            //if it hasnt reached the side yet
             if (currentCoord.X < maxCoord.X)
             {
                 //GD.Print(currentCoord);
-                tileMapCheck.Position = currentCoord;
-                if (!tileMapCheck.HasOverlappingAreas())
+                //check each box
+                for (int i = 0; i < tileMapCheck.Count(); i++)
                 {
-                    tile.SetCell(0, ToTileCoords(currentCoord), 0, new Vector2I(1, 1));
-                    //GD.Print("Setting Coords at: " + ToTileCoords(currentCoord));
+                    //update position of checking box
+                    tileMapCheck[i].Position = currentCoord + new Vector2(0f, 16f * i);
+                    if (!tileMapCheck[i].HasOverlappingAreas())
+                    {
+                        //checks weather tile should exist or not
+                        tile.SetCell(0, ToTileCoords(tileMapCheck[i].Position), 0, new Vector2I(1, 1));
+                    }
                 }
-                //GD.Print("Iterate Coord: " + currentCoord);
-                currentCoord.X += 16;
+                
+                
+                currentCoord.X += 16f;
             }
             else
             {
                 //GD.Print("Y coord Iterated: " + currentCoord);
-                currentCoord.X = minCoord.X;
-                currentCoord.Y += 16;
-            }
-            
-
-            if (currentCoord.Y > maxCoord.Y)
-            {
-                currentState = generationState.draw;
-            }
-            /*
-            GetChild<Area2D>(loops);
-            int xRange = 1;
-            int yRange = 1;
-            bool xDone = false;
-            bool yDone = false;
-            bool foundAll = false;
-            tileMapCheck.Position = GetChild<Area2D>(loops).Position;
-            CheckTile(GetChild<Area2D>(loops));
-            while (!foundAll)
-            {
-                if (xRange % 2 == 1)
+                //remove all the children
+                currentState = generationState.done;
+                foreach (Area2D child in tileMapCheck)
                 {
-                    for (int i = 0; i < xRange; i++)
-                    {
-                        tileMapCheck.Position += new Vector2(16f, 0f);
-                        xDone = CheckTile(GetChild<Area2D>(loops));
-                    }
-                    if (!xDone) 
-                    { xRange += 1; }
-                    else { tileMapCheck.Position -= new Vector2(16f, 0f); }
-                }
-                else if (xRange % 2 == 0)
-                {
-                    for (int i = 0; i < xRange; i++)
-                    {
-                        tileMapCheck.Position -= new Vector2(16f, 0f);
-                        xDone = CheckTile(GetChild<Area2D>(loops));
-                    }
-                    if (!xDone)
-                    { xRange += 1; }
-                    else { tileMapCheck.Position += new Vector2(16f, 0f); }
-                }
-
-                if (yRange % 2 == 1)
-                {
-                    for (int i = 0; i < yRange; i++)
-                    {
-                        tileMapCheck.Position += new Vector2(0f, 16f);
-                        yDone = CheckTile(GetChild<Area2D>(loops));
-                    }
-                    if (!yDone)
-                    { yRange += 1; }
-                    else { tileMapCheck.Position -= new Vector2(0f, 16f); }
-                }
-                else if (yRange % 2 == 0)
-                {
-                    for (int i = 0; i < yRange; i++)
-                    {
-                        tileMapCheck.Position -= new Vector2(0f,160f);
-                        yDone = CheckTile(GetChild<Area2D>(loops));
-                    }
-                    if (!yDone)
-                    { yRange += 1; }
-                    else { tileMapCheck.Position += new Vector2(0f, 16f); }
+                    RemoveChild(child);
                 }
             }
-            loops += 1;
-            */
         }
         else if (currentState == generationState.draw)
         {
@@ -697,16 +649,6 @@ public partial class Room_generator : Node2D
         newCoords.X = (int)((coords.X - (coords.X % 16))/16);
         newCoords.Y = (int)((coords.Y - (coords.Y % 16))/16);
         return newCoords;
-    }
-    public bool CheckTile(Area2D child)
-    {
-        if (tileMapCheck.OverlapsArea(child))
-        {
-            //remove the tile
-            tile.SetCell(0, ToTileCoords(child.Position), -1, null, 1);
-            return false;
-        }
-        return true;
     }
     public List<List<Point>> DetectSections(List<Edge> edges)
     {
@@ -904,6 +846,7 @@ public partial class Room_generator : Node2D
 	{
 		return min+ (from * (max-min));
 	}
+    /*
     public override void _Draw()
     {
 		if (triangulation.Count == 0) //gets called once at the start of the script so we wanna make sure not to do that one
@@ -921,4 +864,5 @@ public partial class Room_generator : Node2D
             DrawLine(position1,position2, new Color(1f, 0.752941f, 0.796078f, 1f), -5f);
 		}
     }
+    */
 }	
