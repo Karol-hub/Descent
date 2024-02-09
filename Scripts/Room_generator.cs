@@ -25,7 +25,7 @@ public partial class Room_generator : Node2D
         done
     }
     private generationState currentState = generationState.spreadRooms;
-    private int amountOfRooms = 100;
+    private int amountOfRooms = 50;
 	private float maxXScale = 20f;
     private float minXScale = 10f;
     private float maxYScale = 15f;
@@ -273,7 +273,7 @@ public partial class Room_generator : Node2D
             count = 0; //resets count to check overlapping areas of child
             for (int i = 0; i < amountOfRooms; i++)
             {
-                if (GetChild<Area2D>(i).HasOverlappingAreas() && GetChild<Area2D>(i) != null) //if there are overlapping areas on the child
+                if (GetChild<Area2D>(i).GetOverlappingAreas().Where(x => x.Name.ToString().Substring(0,2) == "rm").Any() && GetChild<Area2D>(i) != null) //if there are overlapping areas on the child
                 {
                     direction = Vector2.Zero; //resets direction to 0
                     for (int j = 0; j < GetChild<Area2D>(i).GetOverlappingAreas().Count; j++) //check every overlapping area
@@ -512,6 +512,8 @@ public partial class Room_generator : Node2D
                         //add to list of items to remove to not mess up the loop
                         removeThese.Add(GetChild<Area2D>(i));
                     }
+                    //make evety position a multiple of 16
+                    GetChild<Area2D>(i).Position = ((Vector2)ToTileCoords(GetChild<Area2D>(i).Position) * 16f) + new Vector2(8f,8f);
                 }
                 //remove items detected in loop
                 for (int i = 0; i < removeThese.Count; i++)
@@ -594,8 +596,8 @@ public partial class Room_generator : Node2D
                 tileMapCheck.Add(tempNode.GetNode<Area2D>("."));
                 tileMapCheck[i].Position = currentCoord + new Vector2(0f, 16f * i);
             }
-            //GD.Print("minCoord: "+minCoord);
-            //GD.Print("maxCoord: " +maxCoord);
+            GD.Print("minCoord: "+minCoord);
+            GD.Print("maxCoord: " +maxCoord);
             loops = 0;
         }
         else if (currentState == generationState.makeTilemap)
@@ -610,10 +612,24 @@ public partial class Room_generator : Node2D
                 {
                     //update position of checking box
                     tileMapCheck[i].Position = currentCoord + new Vector2(0f, 16f * i);
-                    if (!tileMapCheck[i].HasOverlappingAreas())
+                    if (tileMapCheck[i].GetOverlappingAreas().Where(x => x.Name.ToString() == "bd").Any())
+                    {
+                        //checks weather tile should be a border
+                        if (!tileMapCheck[i].GetOverlappingAreas().Where(x => x.Name.ToString().Substring(0,2) == "cr").Any())
+                        {
+                            tile.SetCell(0, ToTileCoords(tileMapCheck[i].Position), 0, new Vector2I(1, 1));
+                        }
+                        //if not then an empty space because coridoor leads into it.   
+                    }
+                    else if (tileMapCheck[i].GetOverlappingAreas().Where(x => x.Name.ToString() == "pl").Any())
+                    {
+                        //checks weather tile should be a platform
+                        tile.SetCell(0, ToTileCoords(tileMapCheck[i].Position), 0, new Vector2I(4, 4));
+                    }
+                    else if (!tileMapCheck[i].HasOverlappingAreas())
                     {
                         //checks weather tile should exist or not
-                        tile.SetCell(0, ToTileCoords(tileMapCheck[i].Position), 0, new Vector2I(1, 1));
+                        tile.SetCell(0, ToTileCoords(tileMapCheck[i].Position), 0, new Vector2I(4, 7));
                     }
                 }
                 
@@ -751,35 +767,6 @@ public partial class Room_generator : Node2D
             //connect both points to eachother for each polygon
             bool newPoint1 = true;
             bool newPoint2 = true;
-            //GD.Print("point1 is: " + polygon[loopCount].points[0].position);
-            //GD.Print("point2 is: " + polygon[loopCount].points[1].position);
-            //InputRegister.Where(x => x.InputType == "dash").Count()
-            /*
-            //new method THAT DOESNT WORK
-            //first point
-            if (graph.Where(x => x.position == EdgeList[i].points[0].position).Count() == 0)
-            {
-                //if point doesn't exist
-                graph.Add(EdgeList[i].points[0]);
-                graph.Last().connectPoint(EdgeList[i].points[1]);
-            }
-            else
-            {
-                // if point exists connect other to it
-                graph.Where(x => x.position == EdgeList[i].points[0].position).First().connectPoint(EdgeList[i].points[1]);
-            }
-            //other point
-            if (graph.Where(x => x.position == EdgeList[i].points[1].position).Count() == 0)
-            {
-                graph.Add(EdgeList[i].points[1]);
-                graph.Last().connectPoint(EdgeList[i].points[0]);
-            }
-            else
-            {
-                // if point exists connect other to it
-                graph.Where(x => x.position == EdgeList[i].points[1].position).First().connectPoint(EdgeList[i].points[1]);
-            }
-            */
             //adding to existing points
             //Old method that DOES WORK
             for (int j = 0; j < graph.Count(); j++)
@@ -788,14 +775,12 @@ public partial class Room_generator : Node2D
                 if (graph[j].position == EdgeList[i].points[0].position)
                 {
                     //point already exists so we want to connect other point to it
-                    //graph[j].connectedPoints.Add(EdgeList[i].points[1]);
                     graph[j].ConnectPoint(EdgeList[i].points[1]);
                     newPoint1 = false;
                 }
                 if (graph[j].position == EdgeList[i].points[1].position)
                 {
                     //want to do the same for other point
-                    //graph[j].connectedPoints.Add(EdgeList[i].points[0]);
                     graph[j].ConnectPoint(EdgeList[i].points[0]);
                     newPoint2 = false;
                 }

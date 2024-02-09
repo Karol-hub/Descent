@@ -1,19 +1,62 @@
-[gd_scene load_steps=3 format=3 uid="uid://df4aqqksymokg"]
+[gd_scene load_steps=6 format=3 uid="uid://df4aqqksymokg"]
 
 [ext_resource type="Texture2D" uid="uid://wtgngqfgqug1" path="res://Assets/Solid Orange.png" id="1_nqm2w"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8pd1t"]
 size = Vector2(416, 240)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pu4uy"]
+size = Vector2(416, 2)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_s22tl"]
+size = Vector2(2, 240)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gd74a"]
+size = Vector2(96, 8)
+
 [node name="Area2D" type="Area2D"]
 
 [node name="entireArea" type="CollisionShape2D" parent="."]
-position = Vector2(0, 8)
 shape = SubResource("RectangleShape2D_8pd1t")
 debug_color = Color(0.960784, 0.027451, 0.490196, 0.419608)
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-visible = false
-position = Vector2(4.76837e-06, 4.5)
-scale = Vector2(26, 15.5625)
+[node name="Sprite2D" type="Sprite2D" parent="entireArea"]
+position = Vector2(4.76837e-06, 2.6226e-06)
+scale = Vector2(26, 15.125)
 texture = ExtResource("1_nqm2w")
+
+[node name="bd" type="Area2D" parent="."]
+
+[node name="bd 1" type="CollisionShape2D" parent="bd"]
+position = Vector2(0, -117)
+shape = SubResource("RectangleShape2D_pu4uy")
+
+[node name="bd 2" type="CollisionShape2D" parent="bd"]
+position = Vector2(205, 0)
+shape = SubResource("RectangleShape2D_s22tl")
+
+[node name="bd 3" type="CollisionShape2D" parent="bd"]
+position = Vector2(0, 117)
+shape = SubResource("RectangleShape2D_pu4uy")
+
+[node name="bd 4" type="CollisionShape2D" parent="bd"]
+position = Vector2(-205, 0)
+shape = SubResource("RectangleShape2D_s22tl")
+
+[node name="pl" type="Area2D" parent="."]
+
+[node name="pl 1" type="CollisionShape2D" parent="pl"]
+position = Vector2(-88, -56)
+shape = SubResource("RectangleShape2D_gd74a")
+
+[node name="pl 2" type="CollisionShape2D" parent="pl"]
+position = Vector2(-4, -8)
+shape = SubResource("RectangleShape2D_gd74a")
+
+[node name="pl 3" type="CollisionShape2D" parent="pl"]
+position = Vector2(108, 40)
+shape = SubResource("RectangleShape2D_gd74a")
+
+[node name="pl 4" type="CollisionShape2D" parent="pl"]
+position = Vector2(-84, 72)
+shape = SubResource("RectangleShape2D_gd74a")
