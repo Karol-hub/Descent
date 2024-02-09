@@ -242,20 +242,25 @@ public partial class Room_generator : Node2D
         //rng.Randomize();  
         PackedScene room1 = GD.Load<PackedScene>("res://Scenes/RoomVars/room_var_1.tscn");
         PackedScene room2 = GD.Load<PackedScene>("res://Scenes/RoomVars/room_var_2.tscn");
+        PackedScene room3 = GD.Load<PackedScene>("res://Scenes/RoomVars/room_var_3.tscn");
         spreadFactor = amountOfRooms * 10f;
         int randNum;
         #region make rooms
         for (int i = 0; i < amountOfRooms; i++) //makes a certain amount of "rooms"
         {
             Node instance;
-            randNum = rng.RandiRange(0, 1);
+            randNum = rng.RandiRange(0, 2);
             if (randNum == 0)
             {
                 instance = room1.Instantiate();
             }
-            else
+            else if (randNum == 1)
             {
                 instance = room2.Instantiate();
+            }
+            else
+            {
+                instance = room3.Instantiate();
             }
             instance.Name = ("rm" + i);
             AddChild(instance);
@@ -513,7 +518,6 @@ public partial class Room_generator : Node2D
                         removeThese.Add(GetChild<Area2D>(i));
                     }
                     //make evety position a multiple of 16
-                    GetChild<Area2D>(i).Position = ((Vector2)ToTileCoords(GetChild<Area2D>(i).Position) * 16f) + new Vector2(8f,8f);
                 }
                 //remove items detected in loop
                 for (int i = 0; i < removeThese.Count; i++)
@@ -583,9 +587,13 @@ public partial class Room_generator : Node2D
                 if (pos.Y > maxCoord.Y)
                 { maxCoord.Y = pos.Y; }
             }
+            foreach (Area2D child in GetChildren())
+            {
+                child.Position = ((Vector2)ToTileCoords(child.Position) * 16f) + new Vector2(8f, 8f);
+            }
             //one tile is 20 units so need to int division it so it alligns with tilemap
-            minCoord = new Vector2(minCoord.X - (minCoord.X % 16) - 500, minCoord.Y - (minCoord.Y % 16) - 500);
-            maxCoord = new Vector2(maxCoord.X - (maxCoord.X % 16) + 500, maxCoord.Y - (maxCoord.Y % 16) + 500);
+            minCoord = ((Vector2)ToTileCoords(minCoord) * 16f) - new Vector2(520f, 520f);
+            maxCoord = ((Vector2)ToTileCoords(maxCoord) * 16f) + new Vector2(520f, 520f);
             currentCoord = minCoord;
             checkAmount = (int)Mathf.Ceil((maxCoord.Y - minCoord.Y) / 16);
             Node tempNode;
@@ -661,6 +669,7 @@ public partial class Room_generator : Node2D
     }
     private Vector2I ToTileCoords(Vector2 coords)
     {
+        coords += new Vector2(8f, 8f);
         Vector2I newCoords = new Vector2I();
         newCoords.X = (int)((coords.X - (coords.X % 16))/16);
         newCoords.Y = (int)((coords.Y - (coords.Y % 16))/16);

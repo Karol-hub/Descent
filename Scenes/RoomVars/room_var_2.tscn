@@ -1,9 +1,20 @@
-[gd_scene load_steps=3 format=3 uid="uid://ceqr8348qs3tq"]
+[gd_scene load_steps=6 format=3 uid="uid://ceqr8348qs3tq"]
 
 [ext_resource type="Texture2D" uid="uid://wtgngqfgqug1" path="res://Assets/Solid Orange.png" id="1_skybe"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_43bbf"]
 size = Vector2(288, 256)
+
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_ljxs7"]
+a = Vector2(-144, -128)
+b = Vector2(144, -128)
+
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_pjvv2"]
+a = Vector2(144, -128)
+b = Vector2(144, 128)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_0yma5"]
+radius = 55.3173
 
 [node name="Area2D" type="Area2D"]
 
@@ -11,8 +22,32 @@ size = Vector2(288, 256)
 shape = SubResource("RectangleShape2D_43bbf")
 debug_color = Color(0.921569, 0.133333, 0.596078, 0.419608)
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="entireArea"]
 visible = false
 position = Vector2(-1.06692e-05, 2.38419e-06)
 scale = Vector2(18, 16)
 texture = ExtResource("1_skybe")
+
+[node name="bd" type="Area2D" parent="."]
+
+[node name="bd 1" type="CollisionShape2D" parent="bd"]
+shape = SubResource("SegmentShape2D_ljxs7")
+one_way_collision_margin = 0.0
+
+[node name="bd 2" type="CollisionShape2D" parent="bd"]
+position = Vector2(0, 256)
+shape = SubResource("SegmentShape2D_ljxs7")
+one_way_collision_margin = 0.0
+
+[node name="bd 3" type="CollisionShape2D" parent="bd"]
+shape = SubResource("SegmentShape2D_pjvv2")
+
+[node name="bd 4" type="CollisionShape2D" parent="bd"]
+position = Vector2(-288, 0)
+shape = SubResource("SegmentShape2D_pjvv2")
+
+[node name="pl" type="Area2D" parent="."]
+
+[node name="pl 1" type="CollisionShape2D" parent="pl"]
+position = Vector2(-34, 44)
+shape = SubResource("CircleShape2D_0yma5")

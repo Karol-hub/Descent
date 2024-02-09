@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3 uid="uid://l08yagewrd1a"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mqgkb"]
+size = Vector2(348, 303)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_20oao"]
+radius = 125.004
+
+[node name="Area2D" type="Area2D"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_mqgkb")
+
+[node name="pl" type="Area2D" parent="."]
+
+[node name="pl 1" type="CollisionShape2D" parent="pl"]
+shape = SubResource("CircleShape2D_20oao")
