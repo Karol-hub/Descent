@@ -1,13 +1,7 @@
-    using Godot;
-using Godot.Collections;
+using Godot;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 
 public partial class Room_generator : Node2D
 {
@@ -18,19 +12,18 @@ public partial class Room_generator : Node2D
         deleteRooms,
         triangulation,
         removeEdges,
+        spawnBossRoom,
         connectSections,
         makeCoridoors,
         makeTilemap,
+        spawnPlayer,
         draw,
         done
     }
     private generationState currentState = generationState.spreadRooms;
     private int amountOfRooms = 50;
-	private float maxXScale = 20f;
-    private float minXScale = 10f;
-    private float maxYScale = 15f;
-    private float minYScale = 8f;
-	private float spreadFactor;
+    private Vector2 scaleRange = new Vector2(1f, 1.5f); //min and max of scalse of rooms
+    private int roomVars = 10;
 	//spreading rooms apart
 	private bool spread = false;
 	private int count = 0;
@@ -55,22 +48,24 @@ public partial class Room_generator : Node2D
     RandomNumberGenerator rng = new RandomNumberGenerator();
     //Remove Edges
     public float edgeDeleteFactor = 0.3f; //Needs to be between 0-1 (if its 0.8 it will keep 80% of edges)
+    //Spawn spawn/boss room
+    float roomDist = 100;
     //Section stuff
     public List<Edge> polygonDifference = new List<Edge>();
     public List<List<Point>> sections = new List<List<Point>>();
     //Coridoor stuff
     List<Point> coridoorGraph = new List<Point>();
-    public List<CoridoorEntry> coridoorList = new List<CoridoorEntry>();
-    public Vector2 coridoorRadius = new Vector2(50f,20f);
+    public Vector2 coridoorRadius = new Vector2(80f,40f);
     //make Tilemap
     TileMap tile;
     Vector2 minCoord = new Vector2(9999, 9999);
     Vector2 maxCoord = new Vector2(-9999, -9999);
     Vector2 currentCoord = new Vector2();
     PackedScene tileMapCheckScene;
-    List<Area2D> tileMapCheck = new List<Area2D>();
-    //Area2D tileMapCheck;
-    int checkAmount;
+    List<TileMapGeneration> tileMapCheck = new List<TileMapGeneration>();
+    public int checkAmount;
+    //spawn player
+    Vector2 spawnCoords = new Vector2(-9999f, -9999f);
     public class Triangle
 	{
 		public Edge[] edges = new Edge[3]; //3 edges make a triangle
@@ -223,15 +218,24 @@ public partial class Room_generator : Node2D
             this.connectedPoints.Add(newPoint);
         }
 	}
-    public class CoridoorEntry
+    public class TileMapGeneration
     {
         public Area2D area;
-        public Vector2[] vectors = new Vector2[2];
-        public CoridoorEntry(Area2D newArea, Edge polyEdge) 
-        { 
+        public int platSize = 0;
+        public int holeSize = 0;
+        public int maxHoleSize;
+        public int maxPlatSize;
+        public TileMapGeneration(Area2D newArea)
+        {
+            RandomNumberGenerator rng = new RandomNumberGenerator();
             area = newArea;
-            vectors[0] = polyEdge.points[0].position;
-            vectors[1] = polyEdge.points[1].position;
+            maxHoleSize = rng.RandiRange(2, 3);
+            maxPlatSize = rng.RandiRange(4, 6);
+        }
+        public void checkTile(Vector2 newCoords)
+        {
+            //update position of checking box
+            
         }
     }
     public override void _Ready()
@@ -240,33 +244,29 @@ public partial class Room_generator : Node2D
         tileMapCheckScene = GD.Load<PackedScene>("res://Scenes/tile_map_check.tscn");
         rng.Seed = 69420;
         //rng.Randomize();  
-        PackedScene room1 = GD.Load<PackedScene>("res://Scenes/RoomVars/room_var_1.tscn");
-        PackedScene room2 = GD.Load<PackedScene>("res://Scenes/RoomVars/room_var_2.tscn");
-        PackedScene room3 = GD.Load<PackedScene>("res://Scenes/RoomVars/room_var_3.tscn");
-        spreadFactor = amountOfRooms * 10f;
+        float spreadFactor = amountOfRooms * 10f;
         int randNum;
+        float scaleRand;
         #region make rooms
+        Node instance;
+        List<PackedScene> rooms = new List<PackedScene>();
+        for (int i = 0; i < roomVars; i++)
+        {
+            rooms.Add(GD.Load<PackedScene>("res://Scenes/RoomVars/room_var_"+i+".tscn"));
+        }
         for (int i = 0; i < amountOfRooms; i++) //makes a certain amount of "rooms"
         {
-            Node instance;
-            randNum = rng.RandiRange(0, 2);
-            if (randNum == 0)
-            {
-                instance = room1.Instantiate();
-            }
-            else if (randNum == 1)
-            {
-                instance = room2.Instantiate();
-            }
-            else
-            {
-                instance = room3.Instantiate();
-            }
+            randNum = rng.RandiRange(0, roomVars-1);
+            instance = rooms[randNum].Instantiate();
             instance.Name = ("rm" + i);
             AddChild(instance);
-            //instance.GetNode<CollisionShape2D>("Collision").Scale = new Vector2(Map(rng.Randf(), minXScale, maxXScale), Map(rng.Randf(), minYScale, maxYScale)); //generates random scale
+            scaleRand = rng.RandfRange(scaleRange.X, scaleRange.Y);
+            if (rng.RandiRange(0,1) == 0)
+            {
+                scaleRand *= -1;
+            }
+            instance.GetNode<Area2D>(".").Scale = new Vector2(scaleRand, scaleRand);
             instance.GetNode<Area2D>(".").Position = new Vector2(Mathf.Round(rng.Randf() * spreadFactor * 3f), Mathf.Round(rng.Randf() * spreadFactor)); //generates initial random position
-            
         }
         #endregion
     }
@@ -524,8 +524,68 @@ public partial class Room_generator : Node2D
                 {
                     RemoveChild(removeThese[i]);
                 }
-                currentState = generationState.makeCoridoors;
+                currentState = generationState.spawnBossRoom;
             }
+        }
+        else if (currentState == generationState.spawnBossRoom)
+        {
+            //polygonEdgeList is where we have to connect new room
+            FindMinMax(polygonEdgeList);
+            //set up variables needed
+            Point closestPoint = new Point(null);
+            List<Point> graph = MakeGraph(polygonEdgeList);
+            float currentLength = 999999f;
+            Node bossRoom = GD.Load<PackedScene>("res://Scenes/RoomVars/boss.tscn").Instantiate();
+            AddChild(bossRoom);
+            //genereate position between min and max X coord but bias center more
+            //Make Y coord certain amount below other rooms.
+            bossRoom.GetNode<Area2D>(".").Position = new Vector2(minCoord.X + rng.RandfRange(0.2f, 0.8f) * (maxCoord.X - minCoord.X), maxCoord.Y + roomDist);
+            Vector2 bossRoomPos = bossRoom.GetNode<Area2D>(".").Position;
+            //Make boss room into a point to add it to graph
+            Point bossPoint = new Point(bossRoom.GetNode<Area2D>("."));
+            graph.Add(bossPoint);
+            foreach (Point room in graph)
+            {
+                if (currentLength > (room.position - bossRoomPos).Length() && room != bossPoint)
+                {
+                    //if room is closer to currently closest known room
+                    closestPoint = room;
+                    currentLength = (room.position - bossRoomPos).Length();
+                }
+            }
+            GD.Print("boss distance between: "+currentLength);
+            //connect boss to closest room
+            bossPoint.ConnectPoint(closestPoint);
+            closestPoint.ConnectPoint(bossPoint);
+            currentLength = 999999f;
+            rng.Randomize();
+            //Do same thing for spawn room
+            Node spawnRoom = GD.Load<PackedScene>("res://Scenes/RoomVars/spawn.tscn").Instantiate();
+            AddChild(spawnRoom);
+            //genereate position between min and max X coord but bias center more
+            //Make Y coord certain amount above other rooms.
+            spawnRoom.GetNode<Area2D>(".").Position = new Vector2(minCoord.X + rng.RandfRange(0.2f, 0.8f) * (maxCoord.X - minCoord.X), minCoord.Y - roomDist);
+            Vector2 spawnRoomPos = spawnRoom.GetNode<Area2D>(".").Position;
+            //Make spawn room into a point to add it to graph
+            Point spawnPoint = new Point(spawnRoom.GetNode<Area2D>("."));
+            graph.Add(spawnPoint);
+            foreach (Point room in graph)
+            {
+                if (currentLength > (room.position - spawnRoomPos).Length() && room != spawnPoint)
+                {
+                    //if room is closer to currently closest known room
+                    closestPoint = room;
+                    currentLength = (room.position - spawnRoomPos).Length();
+                }
+            }
+            GD.Print("spawn distance between: " + currentLength);
+            //connect spawn to closest room
+            spawnPoint.ConnectPoint(closestPoint);
+            closestPoint.ConnectPoint(spawnPoint);
+            //prepare for next 
+            spawnCoords = spawnRoomPos;
+            polygonEdgeList = MakeEdges(graph);
+            currentState = generationState.makeCoridoors;
         }
         else if (currentState == generationState.makeCoridoors)
         {
@@ -534,7 +594,6 @@ public partial class Room_generator : Node2D
             coridoorGraph = MakeGraph(polygonEdgeList);
             for (int i = 0;i < polygonEdgeList.Count; i++)
             {
-                //need to check weather the edges with new points intersect existing rooms
                 Point point1 = polygonEdgeList[i].points[0];
                 Point point2 = polygonEdgeList[i].points[1];
                 Point newPoint1 = new Point(null);
@@ -547,6 +606,7 @@ public partial class Room_generator : Node2D
                 polygon.Add(new Edge(point1, newPoint2));
                 polygon.Add(new Edge(point2, newPoint2));
             }
+            
             PackedScene coridoor = GD.Load<PackedScene>("res://Scenes/RoomVars/coridoor.tscn");
             for (int i = 0; i < polygon.Count; i++)
             {
@@ -567,33 +627,18 @@ public partial class Room_generator : Node2D
                 {
                     instance.GetNode<Area2D>(".").Scale = ((pos1 + coridoorRadius) - (pos2 - coridoorRadius))/20;
                 }
-                coridoorList.Add(new CoridoorEntry(instance.GetNode<Area2D>("."), polygon[i]));
+                instance.GetNode<Area2D>(".").Scale = new Vector2(Mathf.Abs(instance.GetNode<Area2D>(".").Scale.X), Mathf.Abs(instance.GetNode<Area2D>(".").Scale.Y));
             }
+            
             //Do stuff to preparae for next stage
             currentState = generationState.makeTilemap;
             //Find the bottom left and top right of the ponts
             loops = 0;
-            List<Point> graph = MakeGraph(polygon);
-            Vector2 pos = new Vector2();
-            for (int i = 0; i < graph.Count; i++)
-            {
-                pos = graph[i].position;
-                if (pos.X < minCoord.X)
-                { minCoord.X = pos.X; }
-                if (pos.Y < minCoord.Y)
-                { minCoord.Y = pos.Y; }
-                if (pos.X > maxCoord.X)
-                { maxCoord.X = pos.X; }
-                if (pos.Y > maxCoord.Y)
-                { maxCoord.Y = pos.Y; }
-            }
             foreach (Area2D child in GetChildren())
             {
                 child.Position = ((Vector2)ToTileCoords(child.Position) * 16f) + new Vector2(8f, 8f);
             }
-            //one tile is 20 units so need to int division it so it alligns with tilemap
-            minCoord = ((Vector2)ToTileCoords(minCoord) * 16f) - new Vector2(520f, 520f);
-            maxCoord = ((Vector2)ToTileCoords(maxCoord) * 16f) + new Vector2(520f, 520f);
+            FindMinMax(polygon);
             currentCoord = minCoord;
             checkAmount = (int)Mathf.Ceil((maxCoord.Y - minCoord.Y) / 16);
             Node tempNode;
@@ -601,8 +646,8 @@ public partial class Room_generator : Node2D
             {
                 tempNode = tileMapCheckScene.Instantiate();
                 AddChild(tempNode);
-                tileMapCheck.Add(tempNode.GetNode<Area2D>("."));
-                tileMapCheck[i].Position = currentCoord + new Vector2(0f, 16f * i);
+                tempNode.GetNode<Area2D>(".").Position = currentCoord + new Vector2(0f, 16f * i);
+                tileMapCheck.Add(new TileMapGeneration(tempNode.GetNode<Area2D>(".")));
             }
             GD.Print("minCoord: "+minCoord);
             GD.Print("maxCoord: " +maxCoord);
@@ -618,26 +663,60 @@ public partial class Room_generator : Node2D
                 //check each box
                 for (int i = 0; i < tileMapCheck.Count(); i++)
                 {
-                    //update position of checking box
-                    tileMapCheck[i].Position = currentCoord + new Vector2(0f, 16f * i);
-                    if (tileMapCheck[i].GetOverlappingAreas().Where(x => x.Name.ToString() == "bd").Any())
+                    //room tiles
+                    tileMapCheck[i].area.Position = currentCoord + new Vector2(0f, 16f * i);
+                    if (tileMapCheck[i].area.GetOverlappingAreas().Where(x => x.Name.ToString() == "bd").Any() &&
+                        !tileMapCheck[i].area.GetOverlappingAreas().Where(x => x.Name.ToString().Substring(0, 2) == "cr").Any())
                     {
-                        //checks weather tile should be a border
-                        if (!tileMapCheck[i].GetOverlappingAreas().Where(x => x.Name.ToString().Substring(0,2) == "cr").Any())
-                        {
-                            tile.SetCell(0, ToTileCoords(tileMapCheck[i].Position), 0, new Vector2I(1, 1));
-                        }
+                        tile.SetCell(0, ToTileCoords(tileMapCheck[i].area.Position), 0, new Vector2I(1, 1));
                         //if not then an empty space because coridoor leads into it.   
                     }
-                    else if (tileMapCheck[i].GetOverlappingAreas().Where(x => x.Name.ToString() == "pl").Any())
+                    else if (tileMapCheck[i].area.GetOverlappingAreas().Where(x => x.Name.ToString() == "pl").Any())
                     {
                         //checks weather tile should be a platform
-                        tile.SetCell(0, ToTileCoords(tileMapCheck[i].Position), 0, new Vector2I(4, 4));
+                        tile.SetCell(0, ToTileCoords(tileMapCheck[i].area.Position), 0, new Vector2I(4, 4));
                     }
-                    else if (!tileMapCheck[i].HasOverlappingAreas())
+                    else if (tileMapCheck[i].area.GetOverlappingAreas().Where(x => x.Name.ToString() == "rm").Any())
+                    {
+                        //do nothing just need to not do other stuff
+                        tile.SetCell(0, ToTileCoords(tileMapCheck[i].area.Position), 0, new Vector2I(-1, -1));
+                    }
+
+                    //coridoors
+                    if (tileMapCheck[i].area.GetOverlappingAreas().Where(x => x.Name.ToString().Substring(0, 2) == "cr").Where(x => x.Scale.X < x.Scale.Y).Any() &&
+                        !tileMapCheck[i].area.GetOverlappingAreas().Where(x => x.Name.ToString().Substring(0, 2) == "rm").Any() &&
+                        (((tileMapCheck[i].area.Position.Y - 8) / 16) % 5) == 0f)
+                    {
+                        //make platform in vertical coridoors
+                        if (tileMapCheck[i].platSize < tileMapCheck[i].maxPlatSize)
+                        {
+                            //fill with tile
+                            tile.SetCell(0, ToTileCoords(tileMapCheck[i].area.Position), 0, new Vector2I(1, 1));
+                            tileMapCheck[i].platSize += 1;
+                            tileMapCheck[i].holeSize = 99999;
+                        }
+                        else if (tileMapCheck[i].holeSize < tileMapCheck[i].maxHoleSize)
+                        {
+                            //make hole
+                            tileMapCheck[i].platSize = 0;
+                            tileMapCheck[i].holeSize += 1;
+                        }
+                        else
+                        {
+                            tileMapCheck[i].holeSize = 0;
+                        }
+                    }
+                    else
+                    {
+                        tileMapCheck[i].platSize += 1;
+                        tileMapCheck[i].holeSize = 0;
+                    }
+
+                    //checks for empty space
+                    if (!tileMapCheck[i].area.HasOverlappingAreas())
                     {
                         //checks weather tile should exist or not
-                        tile.SetCell(0, ToTileCoords(tileMapCheck[i].Position), 0, new Vector2I(4, 7));
+                        tile.SetCell(0, ToTileCoords(tileMapCheck[i].area.Position), 0, new Vector2I(4, 7));
                     }
                 }
                 
@@ -648,12 +727,26 @@ public partial class Room_generator : Node2D
             {
                 //GD.Print("Y coord Iterated: " + currentCoord);
                 //remove all the children
-                currentState = generationState.done;
-                foreach (Area2D child in tileMapCheck)
+                foreach (TileMapGeneration child in tileMapCheck)
                 {
-                    RemoveChild(child);
+                    RemoveChild(child.area);
                 }
+                currentState = generationState.spawnPlayer;
             }
+        }
+        else if (currentState == generationState.spawnPlayer)
+        {
+            GD.Print("Got to spawn player");
+            currentState = generationState.done;
+            //GetNode("/root").RemoveChild(GetNode("../Camera_holder"));
+            PackedScene character = GD.Load<PackedScene>("res://Scenes/character.tscn");
+            Node player;
+            player = character.Instantiate();
+            GetNode("/root").AddChild(player);
+            GD.Print("Spawn Coords: "+spawnCoords);
+            player.GetNode<CharacterBody2D>(".").Position = spawnCoords;
+            player.GetNode<Camera2D>("./Camera2D").MakeCurrent();
+            
         }
         else if (currentState == generationState.draw)
         {
@@ -666,6 +759,28 @@ public partial class Room_generator : Node2D
         {
             return;
         }
+    }
+    private void FindMinMax(List<Edge> edges)
+    {
+        minCoord = new Vector2(9999, 9999);
+        maxCoord = new Vector2(-9999, -9999);
+        List<Point> graph = MakeGraph(edges);
+        Vector2 pos = new Vector2();
+        for (int i = 0; i < graph.Count; i++)
+        {
+            pos = graph[i].position;
+            if (pos.X < minCoord.X)
+            { minCoord.X = pos.X; }
+            if (pos.Y < minCoord.Y)
+            { minCoord.Y = pos.Y; }
+            if (pos.X > maxCoord.X)
+            { maxCoord.X = pos.X; }
+            if (pos.Y > maxCoord.Y)
+            { maxCoord.Y = pos.Y; }
+        }
+        //one tile is 16 units so need to int division it so it alligns with tilemap
+        minCoord = ((Vector2)ToTileCoords(minCoord) * 16f) - new Vector2(1032f, 1032f);
+        maxCoord = ((Vector2)ToTileCoords(maxCoord) * 16f) + new Vector2(1032f, 1032f);
     }
     private Vector2I ToTileCoords(Vector2 coords)
     {
@@ -849,11 +964,11 @@ public partial class Room_generator : Node2D
 		}
 		Vector2 position1;
 		Vector2 position2;
-		for (int poly = 0;poly < polygonEdgeList.Count;poly++) // for each triangle in triangulation
+		for (int poly = 0;poly < polygon.Count;poly++) // for each triangle in triangulation
 		{
             //get position of both points on the edge
-			position1 = polygonEdgeList[poly].points[0].position;
-			position2 = polygonEdgeList[poly].points[1].position;
+			position1 = polygon[poly].points[0].position;
+			position2 = polygon[poly].points[1].position;
             //draw line between two points
             DrawLine(position1,position2, new Color(1f, 0.752941f, 0.796078f, 1f), -5f);
 		}

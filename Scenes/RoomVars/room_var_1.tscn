@@ -3,16 +3,16 @@
 [ext_resource type="Texture2D" uid="uid://wtgngqfgqug1" path="res://Assets/Solid Orange.png" id="1_nqm2w"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8pd1t"]
-size = Vector2(416, 240)
+size = Vector2(416, 224)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_pu4uy"]
-size = Vector2(416, 0)
+size = Vector2(480, 32)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_s22tl"]
-size = Vector2(0, 240)
+size = Vector2(32, 288)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gd74a"]
-size = Vector2(104, 0)
+size = Vector2(104, 8)
 
 [node name="Area2D" type="Area2D"]
 
@@ -22,32 +22,32 @@ debug_color = Color(0.960784, 0.027451, 0.490196, 0.419608)
 
 [node name="Sprite2D" type="Sprite2D" parent="entireArea"]
 visible = false
-position = Vector2(4.76837e-06, 2.6226e-06)
-scale = Vector2(26, 15.125)
+position = Vector2(4.76837e-06, 1.90735e-06)
+scale = Vector2(26, 14)
 texture = ExtResource("1_nqm2w")
 
 [node name="bd" type="Area2D" parent="."]
 
 [node name="bd 1" type="CollisionShape2D" parent="bd"]
-position = Vector2(0, -121)
+position = Vector2(0, -128)
 shape = SubResource("RectangleShape2D_pu4uy")
 
 [node name="bd 2" type="CollisionShape2D" parent="bd"]
-position = Vector2(208, 0)
+position = Vector2(224, 0)
 shape = SubResource("RectangleShape2D_s22tl")
 
 [node name="bd 3" type="CollisionShape2D" parent="bd"]
-position = Vector2(0, 121)
+position = Vector2(0, 128)
 shape = SubResource("RectangleShape2D_pu4uy")
 
 [node name="bd 4" type="CollisionShape2D" parent="bd"]
-position = Vector2(-208, 0)
+position = Vector2(-224, 0)
 shape = SubResource("RectangleShape2D_s22tl")
 
 [node name="pl" type="Area2D" parent="."]
 
 [node name="pl 1" type="CollisionShape2D" parent="pl"]
-position = Vector2(-88, -48)
+position = Vector2(-88, -52)
 shape = SubResource("RectangleShape2D_gd74a")
 
 [node name="pl 2" type="CollisionShape2D" parent="pl"]

@@ -1,9 +1,10 @@
-[gd_scene load_steps=7 format=3 uid="uid://c0t8bdh666rf0"]
+[gd_scene load_steps=8 format=3 uid="uid://c0t8bdh666rf0"]
 
 [ext_resource type="Script" path="res://Scripts/character_movement.cs" id="1_8hijs"]
 [ext_resource type="Texture2D" uid="uid://wtgngqfgqug1" path="res://Assets/Solid Orange.png" id="2_67dlv"]
 [ext_resource type="Texture2D" uid="uid://bv5v4quyo7hh2" path="res://Assets/cha.png" id="2_aewld"]
 [ext_resource type="Script" path="res://Scripts/DisplayVelocity.cs" id="4_nioof"]
+[ext_resource type="Texture2D" uid="uid://bodp2rfxgaebh" path="res://Assets/Solid Green.png" id="5_jdrxl"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_d0s3p"]
 size = Vector2(8, 13)
@@ -48,3 +49,9 @@ texture = ExtResource("2_aewld")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(3, 3)
+
+[node name="Visibility" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(18, -13.5)
+scale = Vector2(31.375, 23.3125)
+texture = ExtResource("5_jdrxl")

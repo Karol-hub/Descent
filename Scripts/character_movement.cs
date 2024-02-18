@@ -238,7 +238,7 @@ public partial class character_movement : CharacterBody2D
                 {
                     if (GetSlideCollision(i).GetCollider().GetClass() == "TileMap" && !Input.IsActionPressed("jump"))  
                     {
-                        GD.Print("thingie happened");
+                        //GD.Print("thingie happened");
                         //end dash when colliding with walls but not floor
                         EndDash();
                         return;
