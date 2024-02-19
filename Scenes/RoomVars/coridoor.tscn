@@ -1,8 +1,14 @@
-[gd_scene load_steps=3 format=3 uid="uid://cx5x3v4fhyg12"]
+[gd_scene load_steps=5 format=3 uid="uid://cx5x3v4fhyg12"]
 
 [ext_resource type="Texture2D" uid="uid://bodp2rfxgaebh" path="res://Assets/Solid Green.png" id="1_mbp3t"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hp3r7"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_o5mlm"]
+size = Vector2(20, 0)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_otx7m"]
+size = Vector2(0, 20)
 
 [node name="coridoor" type="Area2D"]
 
@@ -14,3 +20,21 @@ visible = false
 position = Vector2(-4.76837e-07, -4.76837e-07)
 scale = Vector2(1.25, 1.25)
 texture = ExtResource("1_mbp3t")
+
+[node name="cd" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="cd"]
+position = Vector2(0, -10)
+shape = SubResource("RectangleShape2D_o5mlm")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="cd"]
+position = Vector2(0, 10)
+shape = SubResource("RectangleShape2D_o5mlm")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="cd"]
+position = Vector2(10, 0)
+shape = SubResource("RectangleShape2D_otx7m")
+
+[node name="CollisionShape2D4" type="CollisionShape2D" parent="cd"]
+position = Vector2(-10, 0)
+shape = SubResource("RectangleShape2D_otx7m")

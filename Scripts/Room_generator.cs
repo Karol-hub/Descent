@@ -225,6 +225,7 @@ public partial class Room_generator : Node2D
         public int holeSize = 0;
         public int maxHoleSize;
         public int maxPlatSize;
+        public string lastTile;
         public TileMapGeneration(Area2D newArea)
         {
             RandomNumberGenerator rng = new RandomNumberGenerator();
@@ -235,7 +236,10 @@ public partial class Room_generator : Node2D
         public void checkTile(Vector2 newCoords)
         {
             //update position of checking box
-            
+        }
+        public List<Area2D> GOAWhere (string rmName)
+        {
+            return new List<Area2D>(area.GetOverlappingAreas().Where(x => x.Name.ToString().Substring(0, 2) == rmName));
         }
     }
     public override void _Ready()
@@ -537,6 +541,7 @@ public partial class Room_generator : Node2D
             float currentLength = 999999f;
             Node bossRoom = GD.Load<PackedScene>("res://Scenes/RoomVars/boss.tscn").Instantiate();
             AddChild(bossRoom);
+            bossRoom.Name = "rmB";
             //genereate position between min and max X coord but bias center more
             //Make Y coord certain amount below other rooms.
             bossRoom.GetNode<Area2D>(".").Position = new Vector2(minCoord.X + rng.RandfRange(0.2f, 0.8f) * (maxCoord.X - minCoord.X), maxCoord.Y + roomDist);
@@ -553,7 +558,7 @@ public partial class Room_generator : Node2D
                     currentLength = (room.position - bossRoomPos).Length();
                 }
             }
-            GD.Print("boss distance between: "+currentLength);
+            //GD.Print("boss distance between: "+currentLength);
             //connect boss to closest room
             bossPoint.ConnectPoint(closestPoint);
             closestPoint.ConnectPoint(bossPoint);
@@ -562,6 +567,7 @@ public partial class Room_generator : Node2D
             //Do same thing for spawn room
             Node spawnRoom = GD.Load<PackedScene>("res://Scenes/RoomVars/spawn.tscn").Instantiate();
             AddChild(spawnRoom);
+            spawnRoom.Name = "rmS";
             //genereate position between min and max X coord but bias center more
             //Make Y coord certain amount above other rooms.
             spawnRoom.GetNode<Area2D>(".").Position = new Vector2(minCoord.X + rng.RandfRange(0.2f, 0.8f) * (maxCoord.X - minCoord.X), minCoord.Y - roomDist);
@@ -578,7 +584,7 @@ public partial class Room_generator : Node2D
                     currentLength = (room.position - spawnRoomPos).Length();
                 }
             }
-            GD.Print("spawn distance between: " + currentLength);
+            //GD.Print("spawn distance between: " + currentLength);
             //connect spawn to closest room
             spawnPoint.ConnectPoint(closestPoint);
             closestPoint.ConnectPoint(spawnPoint);
@@ -649,8 +655,8 @@ public partial class Room_generator : Node2D
                 tempNode.GetNode<Area2D>(".").Position = currentCoord + new Vector2(0f, 16f * i);
                 tileMapCheck.Add(new TileMapGeneration(tempNode.GetNode<Area2D>(".")));
             }
-            GD.Print("minCoord: "+minCoord);
-            GD.Print("maxCoord: " +maxCoord);
+            //GD.Print("minCoord: "+minCoord);
+            //GD.Print("maxCoord: " +maxCoord);
             loops = 0;
         }
         else if (currentState == generationState.makeTilemap)
@@ -665,26 +671,30 @@ public partial class Room_generator : Node2D
                 {
                     //room tiles
                     tileMapCheck[i].area.Position = currentCoord + new Vector2(0f, 16f * i);
-                    if (tileMapCheck[i].area.GetOverlappingAreas().Where(x => x.Name.ToString() == "bd").Any() &&
-                        !tileMapCheck[i].area.GetOverlappingAreas().Where(x => x.Name.ToString().Substring(0, 2) == "cr").Any())
+                    if (tileMapCheck[i].GOAWhere("bd").Any() &&
+                        !tileMapCheck[i].GOAWhere("cr").Any())
                     {
+                        //Border of rooms
                         tile.SetCell(0, ToTileCoords(tileMapCheck[i].area.Position), 0, new Vector2I(1, 1));
+                        tileMapCheck[i].lastTile = "room border";
                         //if not then an empty space because coridoor leads into it.   
                     }
-                    else if (tileMapCheck[i].area.GetOverlappingAreas().Where(x => x.Name.ToString() == "pl").Any())
+                    else if (tileMapCheck[i].GOAWhere("pl").Any())
                     {
                         //checks weather tile should be a platform
                         tile.SetCell(0, ToTileCoords(tileMapCheck[i].area.Position), 0, new Vector2I(4, 4));
+                        tileMapCheck[i].lastTile = "room  platform";
                     }
-                    else if (tileMapCheck[i].area.GetOverlappingAreas().Where(x => x.Name.ToString() == "rm").Any())
+                    else if (tileMapCheck[i].GOAWhere("rm").Any())
                     {
                         //do nothing just need to not do other stuff
                         tile.SetCell(0, ToTileCoords(tileMapCheck[i].area.Position), 0, new Vector2I(-1, -1));
+                        tileMapCheck[i].lastTile = "empty";
                     }
 
                     //coridoors
-                    if (tileMapCheck[i].area.GetOverlappingAreas().Where(x => x.Name.ToString().Substring(0, 2) == "cr").Where(x => x.Scale.X < x.Scale.Y).Any() &&
-                        !tileMapCheck[i].area.GetOverlappingAreas().Where(x => x.Name.ToString().Substring(0, 2) == "rm").Any() &&
+                    if (tileMapCheck[i].GOAWhere("cr").Where(x => x.Scale.X < x.Scale.Y).Any() &&
+                        !tileMapCheck[i].GOAWhere("rm").Any() &&
                         (((tileMapCheck[i].area.Position.Y - 8) / 16) % 5) == 0f)
                     {
                         //make platform in vertical coridoors
@@ -694,12 +704,14 @@ public partial class Room_generator : Node2D
                             tile.SetCell(0, ToTileCoords(tileMapCheck[i].area.Position), 0, new Vector2I(1, 1));
                             tileMapCheck[i].platSize += 1;
                             tileMapCheck[i].holeSize = 99999;
+                            tileMapCheck[i].lastTile = "coridoor platform";
                         }
                         else if (tileMapCheck[i].holeSize < tileMapCheck[i].maxHoleSize)
                         {
                             //make hole
                             tileMapCheck[i].platSize = 0;
                             tileMapCheck[i].holeSize += 1;
+                            tileMapCheck[i].lastTile = "empty";
                         }
                         else
                         {
@@ -717,10 +729,9 @@ public partial class Room_generator : Node2D
                     {
                         //checks weather tile should exist or not
                         tile.SetCell(0, ToTileCoords(tileMapCheck[i].area.Position), 0, new Vector2I(4, 7));
+                        tileMapCheck[i].lastTile = "filled";
                     }
                 }
-                
-                
                 currentCoord.X += 16f;
             }
             else
@@ -736,14 +747,13 @@ public partial class Room_generator : Node2D
         }
         else if (currentState == generationState.spawnPlayer)
         {
-            GD.Print("Got to spawn player");
             currentState = generationState.done;
             //GetNode("/root").RemoveChild(GetNode("../Camera_holder"));
             PackedScene character = GD.Load<PackedScene>("res://Scenes/character.tscn");
             Node player;
             player = character.Instantiate();
             GetNode("/root").AddChild(player);
-            GD.Print("Spawn Coords: "+spawnCoords);
+            //GD.Print("Spawn Coords: "+spawnCoords);
             player.GetNode<CharacterBody2D>(".").Position = spawnCoords;
             player.GetNode<Camera2D>("./Camera2D").MakeCurrent();
             
