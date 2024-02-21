@@ -25,7 +25,6 @@ public partial class Room_generator : Node2D
     private Vector2 scaleRange = new Vector2(1f, 1.5f); //min and max of scalse of rooms
     private int roomVars = 10;
 	//spreading rooms apart
-	private bool spread = false;
 	private int count = 0;
 	private Vector2 direction = Vector2.Zero;
 	private Vector2 displacement;
@@ -35,7 +34,6 @@ public partial class Room_generator : Node2D
 	private int loopCount = 0;
 	//Deleting rooms
 	private float deletingRoomsFactor = 0.6f; //Needs to be between 0-1 (if its 0.8 it will delete 80% of rooms)
-	private bool removedRooms;
     //Deluaney triangulation
     public int loops = -1;
 	public List<Triangle> triangulation =  new List<Triangle>();
