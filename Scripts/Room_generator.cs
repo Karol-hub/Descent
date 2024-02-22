@@ -221,8 +221,8 @@ public partial class Room_generator : Node2D
     public class TileMapGeneration
     {
         public Area2D area;
-        public int platSize = 0;
-        public int holeSize = 0;
+        public int currentSize;
+        public bool genPlat;
         public int maxHoleSize;
         public int maxPlatSize;
         public string lastTile;
@@ -230,12 +230,10 @@ public partial class Room_generator : Node2D
         {
             RandomNumberGenerator rng = new RandomNumberGenerator();
             area = newArea;
-            maxHoleSize = rng.RandiRange(2, 3);
-            maxPlatSize = rng.RandiRange(4, 6);
-        }
-        public void checkTile(Vector2 newCoords)
-        {
-            //update position of checking box
+            currentSize = 0;
+            genPlat = true;
+            maxHoleSize = rng.RandiRange(2, 4);
+            maxPlatSize = rng.RandiRange(2, 8);
         }
         public List<Area2D> GOAWhere (string rmName)
         {
@@ -698,30 +696,34 @@ public partial class Room_generator : Node2D
                         (((tileMapCheck[i].area.Position.Y - 8) / 16) % 5) == 0f)
                     {
                         //make platform in vertical coridoors
-                        if (tileMapCheck[i].platSize < tileMapCheck[i].maxPlatSize)
+                        if (tileMapCheck[i].currentSize > tileMapCheck[i].maxHoleSize && !tileMapCheck[i].genPlat)
+                        {
+                            tileMapCheck[i].genPlat = true;
+                            tileMapCheck[i].currentSize = 0;
+                        }
+                        if (tileMapCheck[i].currentSize > tileMapCheck[i].maxPlatSize && tileMapCheck[i].genPlat)
+                        {
+                            tileMapCheck[i].genPlat = false;
+                            tileMapCheck[i].currentSize = 0;
+                        }
+                        if (tileMapCheck[i].currentSize <= tileMapCheck[i].maxPlatSize && tileMapCheck[i].genPlat)
                         {
                             //fill with tile
                             tile.SetCell(0, ToTileCoords(tileMapCheck[i].area.Position), 0, new Vector2I(1, 1));
-                            tileMapCheck[i].platSize += 1;
-                            tileMapCheck[i].holeSize = 99999;
+                            tileMapCheck[i].currentSize += 1;
                             tileMapCheck[i].lastTile = "coridoor platform";
                         }
-                        else if (tileMapCheck[i].holeSize < tileMapCheck[i].maxHoleSize)
+                        if (tileMapCheck[i].currentSize <= tileMapCheck[i].maxHoleSize && !tileMapCheck[i].genPlat)
                         {
                             //make hole
-                            tileMapCheck[i].platSize = 0;
-                            tileMapCheck[i].holeSize += 1;
+                            tileMapCheck[i].currentSize += 1;
                             tileMapCheck[i].lastTile = "empty";
-                        }
-                        else
-                        {
-                            tileMapCheck[i].holeSize = 0;
                         }
                     }
                     else
                     {
-                        tileMapCheck[i].platSize += 1;
-                        tileMapCheck[i].holeSize = 0;
+                        tileMapCheck[i].genPlat = false;
+                        tileMapCheck[i].currentSize = 9999;
                     }
 
                     //checks for empty space
