@@ -657,7 +657,6 @@ public partial class Room_generator : Node2D
         }
         else if (currentState == generationState.makeTilemap)
         {
-            //old Method very slow
             //if it hasnt reached the side yet
             if (currentCoord.X < maxCoord.X)
             {
@@ -696,11 +695,15 @@ public partial class Room_generator : Node2D
                         //make platform in vertical coridoors
                         if (tileMapCheck[i].currentSize > tileMapCheck[i].maxHoleSize && !tileMapCheck[i].genPlat)
                         {
+                            //switch state to generate platforms and change size of platform
                             tileMapCheck[i].genPlat = true;
+                            tileMapCheck[i].maxPlatSize = rng.RandiRange(2, 8);
                             tileMapCheck[i].currentSize = 0;
                         }
                         if (tileMapCheck[i].currentSize > tileMapCheck[i].maxPlatSize && tileMapCheck[i].genPlat)
                         {
+                            //switch state to generate holes and change size of hole
+                            tileMapCheck[i].maxHoleSize = rng.RandiRange(2, 4);
                             tileMapCheck[i].genPlat = false;
                             tileMapCheck[i].currentSize = 0;
                         }
@@ -720,6 +723,7 @@ public partial class Room_generator : Node2D
                     }
                     else
                     {
+                        //when not making a platform use large size so it will generate platform nex time
                         tileMapCheck[i].genPlat = false;
                         tileMapCheck[i].currentSize = 9999;
                     }
@@ -742,6 +746,7 @@ public partial class Room_generator : Node2D
                 {
                     RemoveChild(child.area);
                 }
+                //move onto next section
                 currentState = generationState.spawnPlayer;
             }
         }

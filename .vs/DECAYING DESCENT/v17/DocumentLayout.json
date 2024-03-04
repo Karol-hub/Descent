@@ -1,0 +1,101 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Descent\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|d:\\descent\\scripts\\room_generator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|solutionrelative:scripts\\room_generator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|d:\\descent\\scripts\\character_movement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|solutionrelative:scripts\\character_movement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|d:\\descent\\scripts\\displayvelocity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|solutionrelative:scripts\\displayvelocity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|d:\\descent\\scripts\\free_cam.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|solutionrelative:scripts\\free_cam.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|d:\\descent\\scripts\\room_maker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|solutionrelative:scripts\\room_maker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "room_maker.cs",
+              "DocumentMoniker": "D:\\Descent\\Scripts\\room_maker.cs",
+              "RelativeDocumentMoniker": "Scripts\\room_maker.cs",
+              "ToolTip": "D:\\Descent\\Scripts\\room_maker.cs",
+              "RelativeToolTip": "Scripts\\room_maker.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-03-04T19:13:54.31Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Room_generator.cs",
+              "DocumentMoniker": "D:\\Descent\\Scripts\\Room_generator.cs",
+              "RelativeDocumentMoniker": "Scripts\\Room_generator.cs",
+              "ToolTip": "D:\\Descent\\Scripts\\Room_generator.cs",
+              "RelativeToolTip": "Scripts\\Room_generator.cs",
+              "ViewState": "AQIAAI8CAAAAAAAAAAAAAKMCAAAVAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-03-04T19:13:54.419Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "free_cam.cs",
+              "DocumentMoniker": "D:\\Descent\\Scripts\\free_cam.cs",
+              "RelativeDocumentMoniker": "Scripts\\free_cam.cs",
+              "ToolTip": "D:\\Descent\\Scripts\\free_cam.cs",
+              "RelativeToolTip": "Scripts\\free_cam.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAsAAAAgAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-03-04T19:13:54.424Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "DisplayVelocity.cs",
+              "DocumentMoniker": "D:\\Descent\\Scripts\\DisplayVelocity.cs",
+              "RelativeDocumentMoniker": "Scripts\\DisplayVelocity.cs",
+              "ToolTip": "D:\\Descent\\Scripts\\DisplayVelocity.cs",
+              "RelativeToolTip": "Scripts\\DisplayVelocity.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABIAAAAeAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-03-04T19:13:54.428Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "character_movement.cs",
+              "DocumentMoniker": "D:\\Descent\\Scripts\\character_movement.cs",
+              "RelativeDocumentMoniker": "Scripts\\character_movement.cs",
+              "ToolTip": "D:\\Descent\\Scripts\\character_movement.cs",
+              "RelativeToolTip": "Scripts\\character_movement.cs",
+              "ViewState": "AQIAAEEAAAAAAAAAAAAQwOEAAAAIAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-03-04T19:13:54.432Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
