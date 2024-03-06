@@ -53,15 +53,30 @@ position = Vector2(0.5, -0.5)
 scale = Vector2(21.6875, 18.9375)
 texture = ExtResource("1_6l2hj")
 
+[node name="Sprite2D2" type="Sprite2D" parent="CollisionShape2D"]
+position = Vector2(-1.50001, 2)
+scale = Vector2(30.6875, 7.5)
+texture = ExtResource("1_6l2hj")
+
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
 position = Vector2(162, -181.75)
 shape = SubResource("RectangleShape2D_ye5ud")
 debug_color = Color(0.921569, 0.133333, 0.596078, 0.419608)
 
+[node name="Sprite2D" type="Sprite2D" parent="CollisionShape2D2"]
+position = Vector2(-0.500008, -1.23978e-05)
+scale = Vector2(10.75, 14.875)
+texture = ExtResource("1_6l2hj")
+
 [node name="CollisionShape2D3" type="CollisionShape2D" parent="."]
 position = Vector2(-163, 182)
 shape = SubResource("RectangleShape2D_ye5ud")
 debug_color = Color(0.921569, 0.133333, 0.596078, 0.419608)
+
+[node name="Sprite2D" type="Sprite2D" parent="CollisionShape2D3"]
+position = Vector2(-0.500008, -1.23978e-05)
+scale = Vector2(10.75, 14.875)
+texture = ExtResource("1_6l2hj")
 
 [node name="pl" type="Area2D" parent="."]
 

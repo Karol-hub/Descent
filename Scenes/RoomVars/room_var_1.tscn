@@ -21,7 +21,6 @@ shape = SubResource("RectangleShape2D_8pd1t")
 debug_color = Color(0.960784, 0.027451, 0.490196, 0.419608)
 
 [node name="Sprite2D" type="Sprite2D" parent="entireArea"]
-visible = false
 position = Vector2(4.76837e-06, 1.90735e-06)
 scale = Vector2(26, 14)
 texture = ExtResource("1_nqm2w")

@@ -1,4 +1,6 @@
-[gd_scene load_steps=8 format=3 uid="uid://lq844466o8n7"]
+[gd_scene load_steps=9 format=3 uid="uid://lq844466o8n7"]
+
+[ext_resource type="Texture2D" uid="uid://wtgngqfgqug1" path="res://Assets/Solid Orange.png" id="1_c1bn6"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_536ce"]
 size = Vector2(126.75, 258.313)
@@ -28,10 +30,20 @@ position = Vector2(64, -84.8438)
 shape = SubResource("RectangleShape2D_536ce")
 debug_color = Color(0.921569, 0.133333, 0.596078, 0.419608)
 
+[node name="Sprite2D" type="Sprite2D" parent="CollisionShape2D"]
+position = Vector2(-2, -0.656202)
+scale = Vector2(7.875, 15.8125)
+texture = ExtResource("1_c1bn6")
+
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
 position = Vector2(-63, 38.1563)
 shape = SubResource("RectangleShape2D_536ce")
 debug_color = Color(0.921569, 0.133333, 0.596078, 0.419608)
+
+[node name="Sprite2D" type="Sprite2D" parent="CollisionShape2D2"]
+position = Vector2(-2, -0.656202)
+scale = Vector2(7.875, 15.8125)
+texture = ExtResource("1_c1bn6")
 
 [node name="pl" type="Area2D" parent="."]
 
