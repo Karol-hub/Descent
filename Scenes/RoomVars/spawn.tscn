@@ -1,4 +1,6 @@
-[gd_scene load_steps=5 format=3 uid="uid://buiire3gmt2kg"]
+[gd_scene load_steps=6 format=3 uid="uid://buiire3gmt2kg"]
+
+[ext_resource type="Texture2D" uid="uid://cwtorcyvvbjco" path="res://Assets/Solid Blue.png" id="1_y0m68"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_su63o"]
 size = Vector2(196, 235)
@@ -18,6 +20,11 @@ size = Vector2(50, 333)
 position = Vector2(0, 0.5)
 shape = SubResource("RectangleShape2D_su63o")
 debug_color = Color(0.921569, 0.133333, 0.596078, 0.419608)
+
+[node name="SolidBlue" type="Sprite2D" parent="CollisionShape2D"]
+position = Vector2(0.500007, -0.499995)
+scale = Vector2(12.3125, 14.5)
+texture = ExtResource("1_y0m68")
 
 [node name="pl" type="Area2D" parent="."]
 
