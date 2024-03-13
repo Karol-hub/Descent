@@ -54,6 +54,7 @@ scale = Vector2(21.6875, 18.9375)
 texture = ExtResource("1_6l2hj")
 
 [node name="Sprite2D2" type="Sprite2D" parent="CollisionShape2D"]
+visible = false
 position = Vector2(-1.50001, 2)
 scale = Vector2(30.6875, 7.5)
 texture = ExtResource("1_6l2hj")
@@ -64,6 +65,7 @@ shape = SubResource("RectangleShape2D_ye5ud")
 debug_color = Color(0.921569, 0.133333, 0.596078, 0.419608)
 
 [node name="Sprite2D" type="Sprite2D" parent="CollisionShape2D2"]
+visible = false
 position = Vector2(-0.500008, -1.23978e-05)
 scale = Vector2(10.75, 14.875)
 texture = ExtResource("1_6l2hj")
@@ -74,6 +76,7 @@ shape = SubResource("RectangleShape2D_ye5ud")
 debug_color = Color(0.921569, 0.133333, 0.596078, 0.419608)
 
 [node name="Sprite2D" type="Sprite2D" parent="CollisionShape2D3"]
+visible = false
 position = Vector2(-0.500008, -1.23978e-05)
 scale = Vector2(10.75, 14.875)
 texture = ExtResource("1_6l2hj")

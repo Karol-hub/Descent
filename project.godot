@@ -11,12 +11,16 @@ config_version=5
 [application]
 
 config/name="Decaying Descent"
-run/main_scene="res://Scenes/generation_test.tscn"
+run/main_scene="res://Scenes/main_menue.tscn"
 config/features=PackedStringArray("4.1", "C#", "Forward Plus")
 
 [aseprite_importers]
 
 aseprite_executable_path="D:/Steam/steamapps/common/Aseprite/Aseprite.exe"
+
+[display]
+
+window/size/mode=2
 
 [dotnet]
 

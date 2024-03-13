@@ -21,6 +21,7 @@ shape = SubResource("RectangleShape2D_7pcif")
 debug_color = Color(0.921569, 0.133333, 0.596078, 0.419608)
 
 [node name="SolidBlue" type="Sprite2D" parent="CollisionShape2D"]
+visible = false
 position = Vector2(0.999999, -0.999992)
 scale = Vector2(39.875, 13.875)
 texture = ExtResource("1_f46yu")

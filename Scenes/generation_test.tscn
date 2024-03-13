@@ -233,7 +233,6 @@ script = ExtResource("1_0s1ln")
 script = ExtResource("1_u8t8j")
 
 [node name="Camera2D" type="Camera2D" parent="Camera_holder"]
-zoom = Vector2(2, 2)
 
 [node name="sprite" type="Sprite2D" parent="."]
 texture = ExtResource("3_hlqh4")

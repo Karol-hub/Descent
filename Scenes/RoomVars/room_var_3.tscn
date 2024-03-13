@@ -30,6 +30,7 @@ shape = SubResource("RectangleShape2D_mqgkb")
 debug_color = Color(0.921569, 0.133333, 0.596078, 0.419608)
 
 [node name="Sprite2D" type="Sprite2D" parent="CollisionShape2D"]
+visible = false
 position = Vector2(-1.5, -2.00001)
 scale = Vector2(29.6875, 29.875)
 texture = ExtResource("1_rfi45")

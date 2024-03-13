@@ -27,6 +27,7 @@ shape = SubResource("RectangleShape2D_3m50m")
 debug_color = Color(0.921569, 0.133333, 0.596078, 0.419608)
 
 [node name="Sprite2D" type="Sprite2D" parent="CollisionShape2D"]
+visible = false
 position = Vector2(-1, -1.51992e-05)
 scale = Vector2(17.625, 30.25)
 texture = ExtResource("1_haoh6")
