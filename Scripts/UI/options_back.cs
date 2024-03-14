@@ -1,14 +1,14 @@
 using Godot;
 using System;
 
-public partial class options : TextureButton
+public partial class options_back : TextureButton
 {
     bool move = false;
     float progress = 0;
     float length = 1;
     Node2D cam;
-    Vector2 startPos = new Vector2(0f, 0f);
-    Vector2 endPos = new Vector2(0f, 350f);
+    Vector2 startPos = new Vector2(0f, 350f);
+    Vector2 endPos = new Vector2(0f, 0f);
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {

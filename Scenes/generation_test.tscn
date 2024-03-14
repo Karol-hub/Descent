@@ -1,7 +1,6 @@
-[gd_scene load_steps=7 format=3 uid="uid://d30rftlvfrckn"]
+[gd_scene load_steps=6 format=3 uid="uid://d30rftlvfrckn"]
 
 [ext_resource type="Script" path="res://Scripts/Room_generator.cs" id="1_0s1ln"]
-[ext_resource type="Script" path="res://Scripts/free_cam.cs" id="1_u8t8j"]
 [ext_resource type="Texture2D" uid="uid://bv5v4quyo7hh2" path="res://Assets/cha.png" id="3_hlqh4"]
 [ext_resource type="Texture2D" uid="uid://bjb1fqck0oh7g" path="res://Assets/Tiles/Dirt.png" id="4_isen1"]
 
@@ -224,19 +223,49 @@ texture = ExtResource("4_isen1")
 physics_layer_0/collision_layer = 1
 sources/0 = SubResource("TileSetAtlasSource_42ck1")
 
-[node name="Node2D" type="Node2D"]
-
-[node name="Room_gen_holder" type="Node2D" parent="."]
-script = ExtResource("1_0s1ln")
-
-[node name="Camera_holder" type="Node2D" parent="."]
-script = ExtResource("1_u8t8j")
-
-[node name="Camera2D" type="Camera2D" parent="Camera_holder"]
-
-[node name="sprite" type="Sprite2D" parent="."]
-texture = ExtResource("3_hlqh4")
+[node name="generation" type="Node2D"]
 
 [node name="TileMap" type="TileMap" parent="."]
 tile_set = SubResource("TileSet_enrxo")
 format = 2
+
+[node name="Room_gen_holder" type="Node2D" parent="."]
+script = ExtResource("1_0s1ln")
+
+[node name="sprite" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("3_hlqh4")
+
+[node name="Camera_holder" type="Node2D" parent="."]
+
+[node name="Camera2D" type="Camera2D" parent="Camera_holder"]
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="ColorRect" type="ColorRect" parent="Control"]
+layout_mode = 0
+offset_left = -1539.0
+offset_top = -985.0
+offset_right = 1536.0
+offset_bottom = 994.0
+color = Color(0.356863, 0.215686, 0.188235, 1)
+
+[node name="Label" type="Label" parent="Control"]
+layout_mode = 0
+offset_left = -159.0
+offset_top = 18.0
+offset_right = 159.0
+offset_bottom = 44.0
+text = "Your aim is to descend into the next level"
+
+[node name="ProgressBar" type="ProgressBar" parent="Control"]
+layout_mode = 0
+offset_left = -143.0
+offset_top = 2.0
+offset_right = 1108.0
+offset_bottom = 29.0
+scale = Vector2(0.23, 0.23)

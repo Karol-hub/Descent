@@ -306,6 +306,7 @@ public partial class character_movement : CharacterBody2D
         else if (direction != Vector2.Zero && IsOnFloor()) //when walking
         {
             state = playerState.walking;
+            velocity.Y = 0f;
             dashes = maxDashes; //resets amount of dashes
             jumps = maxJumps; //resets amount of Jumps
             coyoteTimer = 0f; //resets timer for coyote window

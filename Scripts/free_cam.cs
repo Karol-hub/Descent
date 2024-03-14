@@ -16,7 +16,7 @@ public partial class free_cam : Node2D
         self = GetNode<Node2D>(".");
         cam = GetNode<Camera2D>("./Camera2D");
         zoom = cam.Zoom;
-        cam.Zoom = new Vector2(0.07f, 0.07f);
+        cam.Zoom = new Vector2(1f, 1f);
         self.Position += new Vector2(1800,1200);
     }
     public override void _Process(double delta)
@@ -37,8 +37,8 @@ public partial class free_cam : Node2D
         {
             zoom -= new Vector2(zoomStep, zoomStep);
         }
-        //cam.Zoom = new Vector2(1 / zoom.X, 1 / zoom.Y);
+        cam.Zoom = new Vector2(1 / zoom.X, 1 / zoom.Y);
         direction = Input.GetVector("move_left", "move_right", "move_up", "move_down");
-        //self.Position += direction * speedy * (1/cam.Zoom.X) *300f;
+        self.Position += direction * speedy * (1/cam.Zoom.X) *300f;
     }
 }

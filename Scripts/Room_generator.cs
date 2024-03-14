@@ -21,7 +21,7 @@ public partial class Room_generator : Node2D
         done
     }
     private generationState currentState = generationState.spreadRooms;
-    private int amountOfRooms = 50;
+    private int amountOfRooms = 30;
     private Vector2 scaleRange = new Vector2(1f, 1.5f); //min and max of scalse of rooms
     private int roomVars = 10;
 	//spreading rooms apart
@@ -652,11 +652,12 @@ public partial class Room_generator : Node2D
                 tileMapCheck.Add(new TileMapGeneration(tempNode.GetNode<Area2D>(".")));
             }
             //GD.Print("minCoord: "+minCoord);
-            //GD.Print("maxCoord: " +maxCoord);
+            GD.Print("maxCoord: " +maxCoord);
             loops = 0;
         }
         else if (currentState == generationState.makeTilemap)
         {
+            GetNode<ProgressBar>("/root/generation/Control/ProgressBar").Value = (currentCoord.X-minCoord.X)/(maxCoord.X-minCoord.X) * 100;
             //if it hasnt reached the side yet
             if (currentCoord.X < maxCoord.X)
             {
@@ -761,7 +762,7 @@ public partial class Room_generator : Node2D
             //GD.Print("Spawn Coords: "+spawnCoords);
             player.GetNode<CharacterBody2D>(".").Position = spawnCoords;
             player.GetNode<Camera2D>("./Camera2D").MakeCurrent();
-            
+            GetNode<Control>("/root/generation/Control").Visible = false;
         }
         else if (currentState == generationState.draw)
         {
