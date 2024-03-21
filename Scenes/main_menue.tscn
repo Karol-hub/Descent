@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://bxxca6vveh3gv"]
+[gd_scene load_steps=17 format=3 uid="uid://bxxca6vveh3gv"]
 
 [ext_resource type="Texture2D" uid="uid://bx3oqcwanruk7" path="res://Assets/UI/button_normal.png" id="1_6o3ir"]
 [ext_resource type="Texture2D" uid="uid://bldeivi8o8hb1" path="res://Assets/UI/button_press.png" id="2_tffo4"]
@@ -7,8 +7,13 @@
 [ext_resource type="Texture2D" uid="uid://bjb1fqck0oh7g" path="res://Assets/Tiles/Dirt.png" id="5_afqxi"]
 [ext_resource type="Script" path="res://Scripts/UI/options.cs" id="5_ffw35"]
 [ext_resource type="Script" path="res://Scripts/UI/exit.cs" id="5_hxg04"]
+[ext_resource type="Texture2D" uid="uid://bvbj63yxs04r7" path="res://Assets/UI/icons/play.png" id="6_0opty"]
 [ext_resource type="Texture2D" uid="uid://bv5v4quyo7hh2" path="res://Assets/cha.png" id="6_6x1ry"]
 [ext_resource type="Script" path="res://Scripts/UI/options_back.cs" id="7_7mcqh"]
+[ext_resource type="Texture2D" uid="uid://dsb3orksnhskg" path="res://Assets/UI/icons/options.png" id="8_oefn1"]
+[ext_resource type="Texture2D" uid="uid://hjrp3obtl0m4" path="res://Assets/UI/icons/tutorial.png" id="11_ljv1u"]
+[ext_resource type="Texture2D" uid="uid://cq2l8ypdhe1d3" path="res://Assets/UI/icons/exit.png" id="12_j3q0w"]
+[ext_resource type="Script" path="res://Scripts/UI/display_name.cs" id="13_dpc06"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_y31eb"]
 texture = ExtResource("5_afqxi")
@@ -244,10 +249,10 @@ offset_bottom = 40.0
 
 [node name="start" type="TextureButton" parent="Control"]
 layout_mode = 0
-offset_left = -131.0
-offset_top = -47.0
-offset_right = -32.0001
-offset_bottom = -13.0
+offset_left = -133.0
+offset_top = -59.0
+offset_right = -14.0
+offset_bottom = -25.0
 scale = Vector2(0.69, 0.69)
 tooltip_text = "Take a wild geuess what this does"
 texture_normal = ExtResource("1_6o3ir")
@@ -258,19 +263,26 @@ script = ExtResource("4_4swr1")
 
 [node name="CenterContainer" type="CenterContainer" parent="Control/start"]
 layout_mode = 0
-offset_right = 99.0
-offset_bottom = 34.0
+offset_left = 20.2898
+offset_top = -1.44927
+offset_right = 119.29
+offset_bottom = 32.5507
 
 [node name="Label" type="Label" parent="Control/start/CenterContainer"]
 layout_mode = 2
 text = "Start Game"
 
+[node name="Sprite2D" type="Sprite2D" parent="Control/start"]
+position = Vector2(15.942, 15.942)
+scale = Vector2(0.56, 0.56)
+texture = ExtResource("6_0opty")
+
 [node name="options" type="TextureButton" parent="Control"]
 layout_mode = 0
-offset_left = -122.0
-offset_top = -11.0
-offset_right = -23.0001
-offset_bottom = 23.0
+offset_left = -128.0
+offset_top = -29.0
+offset_right = -9.0
+offset_bottom = 5.0
 scale = Vector2(0.69, 0.69)
 tooltip_text = "Goes th the options menue"
 texture_normal = ExtResource("1_6o3ir")
@@ -281,18 +293,25 @@ script = ExtResource("5_ffw35")
 
 [node name="CenterContainer" type="CenterContainer" parent="Control/options"]
 layout_mode = 0
-offset_right = 99.0
+offset_left = 20.2899
+offset_right = 119.29
 offset_bottom = 34.0
 
 [node name="Label" type="Label" parent="Control/options/CenterContainer"]
 layout_mode = 2
 text = "Options"
 
+[node name="Sprite2D" type="Sprite2D" parent="Control/options"]
+position = Vector2(15.942, 15.942)
+scale = Vector2(0.59, 0.59)
+texture = ExtResource("8_oefn1")
+
 [node name="options back" type="TextureButton" parent="Control"]
-offset_left = -165.0
-offset_top = 283.0
-offset_right = -66.0001
-offset_bottom = 317.0
+layout_mode = 0
+offset_left = -171.0
+offset_top = 284.0
+offset_right = -53.0
+offset_bottom = 318.0
 scale = Vector2(0.44, 0.44)
 tooltip_text = "Goes back to main menu"
 texture_normal = ExtResource("1_6o3ir")
@@ -303,19 +322,46 @@ script = ExtResource("7_7mcqh")
 
 [node name="CenterContainer" type="CenterContainer" parent="Control/options back"]
 layout_mode = 0
-offset_right = 99.0
+offset_right = 118.0
 offset_bottom = 34.0
 
 [node name="Label" type="Label" parent="Control/options back/CenterContainer"]
 layout_mode = 2
 text = "Back"
 
+[node name="tutorial" type="TextureButton" parent="Control"]
+offset_left = -118.0
+offset_top = 2.0
+offset_right = 2.0
+offset_bottom = 36.0
+scale = Vector2(0.69, 0.69)
+tooltip_text = "Quits the game"
+texture_normal = ExtResource("1_6o3ir")
+texture_pressed = ExtResource("2_tffo4")
+texture_hover = ExtResource("3_uliqy")
+ignore_texture_size = true
+
+[node name="CenterContainer" type="CenterContainer" parent="Control/tutorial"]
+layout_mode = 0
+offset_left = 20.2899
+offset_right = 119.29
+offset_bottom = 34.0
+
+[node name="Label" type="Label" parent="Control/tutorial/CenterContainer"]
+layout_mode = 2
+text = "Tutorial"
+
+[node name="Sprite2D" type="Sprite2D" parent="Control/tutorial"]
+position = Vector2(15.942, 15.942)
+scale = Vector2(0.56, 0.56)
+texture = ExtResource("11_ljv1u")
+
 [node name="exit" type="TextureButton" parent="Control"]
 layout_mode = 0
-offset_left = -106.0
-offset_top = 26.0
-offset_right = -7.00006
-offset_bottom = 60.0
+offset_left = -104.0
+offset_top = 32.0
+offset_right = 16.0
+offset_bottom = 66.0
 scale = Vector2(0.69, 0.69)
 tooltip_text = "Quits the game"
 texture_normal = ExtResource("1_6o3ir")
@@ -326,12 +372,18 @@ script = ExtResource("5_hxg04")
 
 [node name="CenterContainer" type="CenterContainer" parent="Control/exit"]
 layout_mode = 0
-offset_right = 99.0
+offset_left = 20.2899
+offset_right = 119.29
 offset_bottom = 34.0
 
 [node name="Label" type="Label" parent="Control/exit/CenterContainer"]
 layout_mode = 2
 text = "Exit"
+
+[node name="Sprite2D" type="Sprite2D" parent="Control/exit"]
+position = Vector2(15.942, 15.942)
+scale = Vector2(0.525, 0.525)
+texture = ExtResource("12_j3q0w")
 
 [node name="options bg" type="ColorRect" parent="Control"]
 layout_mode = 0
@@ -376,6 +428,7 @@ scale = Vector2(0.69, 0.69)
 text = "Music"
 
 [node name="HSlider2" type="HSlider" parent="Control/audio bg"]
+layout_mode = 0
 offset_left = 6.0
 offset_top = 45.0
 offset_right = 136.0
@@ -393,6 +446,7 @@ scale = Vector2(0.69, 0.69)
 text = "Player Sound Effects"
 
 [node name="HSlider3" type="HSlider" parent="Control/audio bg"]
+layout_mode = 0
 offset_left = 6.0
 offset_top = 70.0
 offset_right = 136.0
@@ -408,6 +462,23 @@ offset_right = 166.696
 offset_bottom = 12.9565
 scale = Vector2(0.69, 0.69)
 text = "Enemy Sound Effects"
+
+[node name="Label" type="Label" parent="Control"]
+layout_mode = 0
+offset_left = -112.0
+offset_top = 299.0
+offset_right = -5.0
+offset_bottom = 325.0
+scale = Vector2(0.475, 0.475)
+text = "Display Name"
+
+[node name="TextEdit" type="TextEdit" parent="Control/Label"]
+layout_mode = 0
+offset_top = 23.1579
+offset_right = 199.0
+offset_bottom = 53.1579
+placeholder_text = "Max 12 characters"
+script = ExtResource("13_dpc06")
 
 [node name="Cha" type="Sprite2D" parent="."]
 position = Vector2(81, -24)
