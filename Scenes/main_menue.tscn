@@ -330,6 +330,7 @@ layout_mode = 2
 text = "Back"
 
 [node name="tutorial" type="TextureButton" parent="Control"]
+layout_mode = 0
 offset_left = -118.0
 offset_top = 2.0
 offset_right = 2.0
@@ -403,6 +404,7 @@ scale = Vector2(0.48, 0.48)
 text = "Hard Mode"
 
 [node name="audio bg" type="ColorRect" parent="Control"]
+layout_mode = 0
 offset_left = 7.0
 offset_top = 323.0
 offset_right = 111.0

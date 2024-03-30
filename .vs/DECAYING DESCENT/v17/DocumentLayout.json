@@ -3,12 +3,20 @@
   "WorkspaceRootPath": "D:\\Descent\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|d:\\descent\\scripts\\room_generator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|solutionrelative:scripts\\room_generator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|d:\\descent\\scripts\\ui\\display_name.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|solutionrelative:scripts\\ui\\display_name.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|d:\\descent\\scripts\\character_movement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|solutionrelative:scripts\\character_movement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|d:\\descent\\scripts\\ui\\exit.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|solutionrelative:scripts\\ui\\exit.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|d:\\descent\\scripts\\ui\\options.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|solutionrelative:scripts\\ui\\options.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|d:\\descent\\scripts\\ui\\start.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|solutionrelative:scripts\\ui\\start.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|d:\\descent\\scripts\\displayvelocity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -19,8 +27,12 @@
       "RelativeMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|solutionrelative:scripts\\free_cam.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|d:\\descent\\scripts\\room_maker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|solutionrelative:scripts\\room_maker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|d:\\descent\\scripts\\character_movement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|solutionrelative:scripts\\character_movement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|d:\\descent\\scripts\\room_generator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABE594F4-8B0A-4216-AC70-B7E22615E23C}|Decaying Descent.csproj|solutionrelative:scripts\\room_generator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -30,48 +42,89 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "room_maker.cs",
-              "DocumentMoniker": "D:\\Descent\\Scripts\\room_maker.cs",
-              "RelativeDocumentMoniker": "Scripts\\room_maker.cs",
-              "ToolTip": "D:\\Descent\\Scripts\\room_maker.cs",
-              "RelativeToolTip": "Scripts\\room_maker.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAABAAAAAAAAAA",
+              "DocumentIndex": 0,
+              "Title": "display_name.cs",
+              "DocumentMoniker": "D:\\Descent\\Scripts\\UI\\display_name.cs",
+              "RelativeDocumentMoniker": "Scripts\\UI\\display_name.cs",
+              "ToolTip": "D:\\Descent\\Scripts\\UI\\display_name.cs",
+              "RelativeToolTip": "Scripts\\UI\\display_name.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-04T19:13:54.31Z"
+              "WhenOpened": "2024-03-30T14:45:52.397Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
+              "Title": "exit.cs",
+              "DocumentMoniker": "D:\\Descent\\Scripts\\UI\\exit.cs",
+              "RelativeDocumentMoniker": "Scripts\\UI\\exit.cs",
+              "ToolTip": "D:\\Descent\\Scripts\\UI\\exit.cs",
+              "RelativeToolTip": "Scripts\\UI\\exit.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAoAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-03-30T14:45:02.785Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "options.cs",
+              "DocumentMoniker": "D:\\Descent\\Scripts\\UI\\options.cs",
+              "RelativeDocumentMoniker": "Scripts\\UI\\options.cs",
+              "ToolTip": "D:\\Descent\\Scripts\\UI\\options.cs",
+              "RelativeToolTip": "Scripts\\UI\\options.cs",
+              "ViewState": "AQIAAA0AAAAAAAAAAAAgwBAAAAAVAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-03-30T14:42:36.338Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "start.cs",
+              "DocumentMoniker": "D:\\Descent\\Scripts\\UI\\start.cs",
+              "RelativeDocumentMoniker": "Scripts\\UI\\start.cs",
+              "ToolTip": "D:\\Descent\\Scripts\\UI\\start.cs",
+              "RelativeToolTip": "Scripts\\UI\\start.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAANAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-03-25T13:37:39.089Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
               "Title": "Room_generator.cs",
               "DocumentMoniker": "D:\\Descent\\Scripts\\Room_generator.cs",
               "RelativeDocumentMoniker": "Scripts\\Room_generator.cs",
               "ToolTip": "D:\\Descent\\Scripts\\Room_generator.cs",
               "RelativeToolTip": "Scripts\\Room_generator.cs",
-              "ViewState": "AQIAAI8CAAAAAAAAAAAAAKMCAAAVAAAA",
+              "ViewState": "AQIAAMcDAAAAAAAAAAAgwOADAAACAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-03-04T19:13:54.419Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "free_cam.cs",
               "DocumentMoniker": "D:\\Descent\\Scripts\\free_cam.cs",
               "RelativeDocumentMoniker": "Scripts\\free_cam.cs",
               "ToolTip": "D:\\Descent\\Scripts\\free_cam.cs",
               "RelativeToolTip": "Scripts\\free_cam.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAsAAAAgAAAA",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAQAAAABAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-04T19:13:54.424Z"
+              "WhenOpened": "2024-03-04T19:13:54.424Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "DisplayVelocity.cs",
               "DocumentMoniker": "D:\\Descent\\Scripts\\DisplayVelocity.cs",
               "RelativeDocumentMoniker": "Scripts\\DisplayVelocity.cs",
@@ -79,19 +132,21 @@
               "RelativeToolTip": "Scripts\\DisplayVelocity.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAABIAAAAeAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-04T19:13:54.428Z"
+              "WhenOpened": "2024-03-04T19:13:54.428Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 6,
               "Title": "character_movement.cs",
               "DocumentMoniker": "D:\\Descent\\Scripts\\character_movement.cs",
               "RelativeDocumentMoniker": "Scripts\\character_movement.cs",
               "ToolTip": "D:\\Descent\\Scripts\\character_movement.cs",
               "RelativeToolTip": "Scripts\\character_movement.cs",
-              "ViewState": "AQIAAEEAAAAAAAAAAAAQwOEAAAAIAAAA",
+              "ViewState": "AQIAAGIBAAAAAAAAAAAAAG0BAAAZAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-04T19:13:54.432Z"
+              "WhenOpened": "2024-03-04T19:13:54.432Z",
+              "EditorCaption": ""
             }
           ]
         }

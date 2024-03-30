@@ -16,6 +16,7 @@ public partial class options : TextureButton
     }
     private void _pressed()
     {
+        //on press
         move = true;
         progress = 0;
     }
@@ -25,10 +26,12 @@ public partial class options : TextureButton
     {
         if (move)
         {
+            //interpolate between two position values
             progress += (float)delta;
             cam.Position = startPos + (Ease(progress / length) * (endPos - startPos));
             if (progress > length)
             {
+                //when finished
                 move = false;
                 progress = 0;
                 cam.Position = endPos;
